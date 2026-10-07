@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>System Design em 32 semanas — plano de estudos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2F0; --surface:#F8FAF9; --ink:#1D2B36; --muted:#5A6A74; --line:#C9D3D1;
+  --accent:#1F5FA8; --accent-soft:#D6E3F3; --extra:#8A5710; --extra-soft:#F1E3CC; --done:#2E7D5B; --done-soft:#D5EBDF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121A20; --surface:#18232B; --ink:#E3E9EC; --muted:#95A5AF; --line:#2C3A44;
+    --accent:#7FA8E6; --accent-soft:#1F3350; --extra:#E0B060; --extra-soft:#3A2E1A; --done:#5FC194; --done-soft:#1D3A2C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121A20; --surface:#18232B; --ink:#E3E9EC; --muted:#95A5AF; --line:#2C3A44;
+  --accent:#7FA8E6; --accent-soft:#1F3350; --extra:#E0B060; --extra-soft:#3A2E1A; --done:#5FC194; --done-soft:#1D3A2C;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 110px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;font-weight:700;line-height:1.15;margin:0}
+a{color:var(--accent)}
+p{margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+header.hero{padding:56px 0 24px}
+.hero h1{font-size:clamp(2.2rem,6vw,4rem);letter-spacing:-.02em;max-width:13ch}
+.hero p{color:var(--muted);max-width:60ch;margin-top:16px;font-size:1.05rem}
+nav.jump{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+nav.jump a{text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.92rem;background:var(--surface)}
+nav.jump a:hover{border-color:var(--accent)}
+
+/* sticky progress */
+.rail-bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 0 10px}
+.rail{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.rail-month{min-width:0}
+.rail-segs{display:flex;gap:2px;height:14px}
+.seg{flex:1;border:0;padding:0;border-radius:2px;background:var(--line);cursor:pointer}
+.seg.extra{background:var(--extra-soft);outline:1px solid var(--extra);outline-offset:-1px}
+.seg.done{background:var(--done);outline:none}
+.seg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rail-label{font-size:.72rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;font-size:.88rem;color:var(--muted);flex-wrap:wrap}
+.rail-meta strong{color:var(--ink)}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools button{font:inherit;font-size:.85rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer}
+.tools button:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* generic section */
+section.block{padding:48px 0;border-bottom:1px solid var(--line)}
+section.block > h2{font-size:clamp(1.6rem,3.5vw,2.2rem);margin-bottom:8px}
+section.block > .lead{color:var(--muted);max-width:64ch;margin-bottom:28px}
+
+/* how to */
+.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:24px 40px}
+.steps li{counter-increment:s;position:relative;padding-left:52px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:-4px;font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:2.2rem;line-height:1;color:var(--accent)}
+.steps h3{font-size:1.1rem;margin-bottom:4px}
+.steps p{color:var(--muted)}
+.week-rhythm{margin-top:36px;overflow-x:auto}
+.week-rhythm table{border-collapse:collapse;width:100%;min-width:560px}
+.week-rhythm th,.week-rhythm td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.week-rhythm th{font-size:.85rem;color:var(--muted);font-weight:600}
+.week-rhythm td:first-child{font-weight:700;white-space:nowrap}
+.week-rhythm td:last-child{white-space:nowrap;color:var(--muted)}
+.tip{margin-top:20px;padding:14px 16px;border-left:3px solid var(--extra);background:var(--extra-soft);max-width:72ch}
+
+/* library */
+.shelf{margin-top:8px}
+.shelf h3{font-size:1.15rem;margin:28px 0 4px}
+.shelf > p{color:var(--muted);max-width:64ch;margin-bottom:10px}
+.book{display:grid;grid-template-columns:72px 1fr;gap:16px;padding:16px 0;border-top:1px solid var(--line)}
+.code{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:1.05rem;color:var(--accent)}
+.book h4{font-family:"Public Sans",sans-serif;font-size:1.02rem;font-weight:700}
+.book .meta{color:var(--muted);font-size:.92rem}
+.book .why{margin-top:4px;max-width:70ch}
+.book .used{margin-top:6px;font-size:.88rem;color:var(--muted)}
+.book .used a{font-weight:600}
+
+/* months & weeks */
+.month{padding:44px 0 12px}
+.month-top{display:grid;grid-template-columns:200px 1fr;gap:32px;margin-bottom:16px}
+.month-num{font-family:"Bricolage Grotesque",sans-serif;font-size:3.2rem;line-height:1;color:var(--accent);font-weight:700}
+.month-top h3{font-size:1.4rem;margin-top:6px}
+.month-top .count{font-size:.85rem;color:var(--muted);margin-top:6px}
+.month-goal{color:var(--muted);max-width:64ch}
+.deliver{margin-top:14px;padding:14px 16px;background:var(--done-soft);border-left:3px solid var(--done);max-width:72ch}
+.deliver strong{display:block;margin-bottom:2px}
+
+.weeks{margin-left:232px}
+.week{border-top:1px solid var(--line)}
+.week-row{display:flex;gap:14px;align-items:flex-start;padding:14px 0}
+.week-row input{appearance:none;flex:none;width:22px;height:22px;margin:3px 0 0;border:2px solid var(--muted);border-radius:4px;cursor:pointer;display:grid;place-content:center;background:var(--surface)}
+.week-row input::after{content:"";width:10px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px);opacity:0}
+.week-row input:checked{background:var(--done);border-color:var(--done)}
+.week-row input:checked::after{opacity:1}
+.week-row input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details{flex:1;min-width:0}
+summary{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:2px}
+.wk{font-weight:700;color:var(--muted);font-size:.9rem;min-width:5.5em}
+.tag{font-size:.78rem;font-weight:600;padding:1px 8px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.tag.extra{background:var(--extra-soft);color:var(--extra)}
+summary h4{font-size:1.1rem;font-family:"Public Sans",sans-serif;font-weight:700;flex-basis:100%}
+.week.is-done summary h4{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.hint{font-size:.85rem;color:var(--muted)}
+details[open] .hint{display:none}
+
+.body{padding:10px 0 20px}
+.body h5{font-family:"Bricolage Grotesque",sans-serif;font-size:1rem;margin:22px 0 8px}
+.body h5:first-child{margin-top:4px}
+.body > p{max-width:70ch}
+.aside{font-style:italic;color:var(--muted);margin-top:8px;max-width:70ch}
+.concepts{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px 18px;margin:0}
+.concepts dt{font-weight:700}
+.concepts dd{margin:0;max-width:62ch}
+.tradeoff{padding:12px 16px;background:var(--accent-soft);border-left:3px solid var(--accent);max-width:72ch}
+.plan{display:grid;grid-template-columns:130px 1fr;gap:0;border-top:1px solid var(--line)}
+.plan > div{padding:10px 0;border-bottom:1px solid var(--line)}
+.plan .day{font-weight:700;padding-right:12px}
+.plan .day small{display:block;font-weight:400;color:var(--muted)}
+.plan ul,.plan ol{margin:0;padding-left:1.15em;max-width:66ch}
+.plan li+li{margin-top:5px}
+a.bk{font-weight:700;text-decoration:none;border-bottom:1px solid currentColor}
+.opt{color:var(--muted)}
+
+section.final{padding:48px 0 72px}
+section.final h2{font-size:1.6rem;margin-bottom:8px}
+section.final p{max-width:66ch;color:var(--muted)}
+
+@media (max-width:820px){
+  .steps{grid-template-columns:1fr}
+  .month-top{grid-template-columns:1fr;gap:10px}
+  .month-num{font-size:2.4rem}
+  .weeks{margin-left:0}
+  .rail-label{display:none}
+  .concepts{grid-template-columns:1fr;gap:2px}
+  .concepts dd{margin-bottom:10px}
+  .plan{grid-template-columns:1fr}
+  .plan .day{border-bottom:0;padding-bottom:0}
+  .book{grid-template-columns:1fr;gap:4px}
+}
+
+/* language */
+.lg{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.02em;padding:0 5px;border-radius:3px;margin-right:8px;vertical-align:1px;line-height:1.5}
+.lg-pt{background:var(--done-soft);color:var(--done)}
+.lg-en{background:var(--line);color:var(--muted)}
+.code .lg{margin:0 0 0 6px;vertical-align:2px}
+ul.res{list-style:none;padding-left:0}
+body[data-lang="pt"] .lang-en{display:none}
+body[data-lang="en"] .lang-pt{display:none}
+.langsel{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.tools .langsel button{border:0;border-radius:0;padding:4px 10px}
+.tools .langsel button+button{border-left:1px solid var(--line)}
+.tools .langsel button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.book h4 a{color:inherit}
+
+/* ADR & postmortem */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:8px}
+.two h3,h3.sub{font-size:1.1rem;margin:22px 0 6px}
+.two h3:first-child{margin-top:0}
+.two p{max-width:62ch}
+h3.sub{margin-top:36px}
+.muted{color:var(--muted);max-width:66ch;margin-bottom:14px}
+pre.tpl{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;margin:8px 0 0}
+code{font:0.9em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface);padding:1px 4px;border-radius:3px}
+ol.qs{margin:0;padding-left:1.2em;max-width:62ch}
+ol.qs li+li{margin-top:4px}
+ul.plain li+li{margin-top:6px}
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 20px;scroll-margin-top:120px}
+.case:target{outline:2px solid var(--accent)}
+.case-meta{font-size:.82rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em}
+.case h4{font-family:"Public Sans",sans-serif;font-size:1.05rem;margin:4px 0 10px}
+.case dl{margin:0 0 10px}
+.case dt{font-weight:700;font-size:.85rem;color:var(--muted);margin-top:8px}
+.case dd{margin:2px 0 0}
+.case-weeks{font-size:.85rem;color:var(--muted);margin-top:8px}
+@media (max-width:820px){.two,.cases{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>System Design em 32 semanas</h1>
+    <p>Plano de estudo baseado na grade do treinamento de System Design da LinuxTips. Um tema por semana, cerca de 7 horas semanais, sempre no mesmo roteiro: ler, assistir, praticar e se autoavaliar.</p>
+    <nav class="jump" aria-label="Seções">
+      <a href="#como-seguir">Como seguir</a>
+      <a href="#livros">Livros</a>
+      <a href="#cronograma">Cronograma</a>
+      <a href="#adrs">ADRs</a>
+      <a href="#postmortems">Postmortems</a>
+    </nav>
+  </header>
+</div>
+
+<div class="rail-bar">
+  <div class="wrap">
+    <div class="rail" id="rail" aria-label="Progresso por mês"></div>
+    <div class="rail-meta">
+      <span id="progress-text"></span>
+      <div class="tools">
+        <span class="langsel" role="group" aria-label="Idioma das referências">
+          <button type="button" data-lang="all">Tudo</button>
+          <button type="button" data-lang="pt">Só português</button>
+          <button type="button" data-lang="en">Só inglês</button>
+        </span>
+        <button type="button" id="next">Ir para a próxima semana</button>
+        <button type="button" id="collapse">Recolher tudo</button>
+        <button type="button" id="reset">Limpar progresso</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section class="block" id="como-seguir">
+  <h2>Como seguir este plano</h2>
+  <p class="lead">São 32 semanas de conteúdo. Oito meses dão cerca de 34 semanas, então sobram umas 2 para atrasos, revisão ou para repetir um tema difícil.</p>
+  <ol class="steps">
+    <li><h3>Separe o material em português</h3><p>O blog do instrutor é gratuito e cobre quase toda a grade. Depois, providencie os livros essenciais em português (lista abaixo). Os de apoio são opcionais.</p></li>
+    <li><h3>Monte o laboratório</h3><p>Um projeto Kotlin + Spring Boot com Postgres, Redis e Kafka num docker-compose. Todas as práticas rodam nele. O backend do Bancada serve bem: marketplace tem anúncio, pedido, pagamento e estoque.</p></li>
+    <li><h3>Uma semana por vez</h3><p>Abra a semana no cronograma e siga o roteiro dia a dia. Cada semana diz exatamente qual capítulo ler, o que assistir e o que construir.</p></li>
+    <li><h3>Feche o mês com a entrega</h3><p>No fim de cada mês há uma entrega que junta as práticas das semanas num resultado concreto. Ela é o seu termômetro de que aprendeu.</p></li>
+  </ol>
+
+  <div class="week-rhythm">
+    <table>
+      <thead><tr><th>Dia</th><th>O que fazer</th><th>Tempo</th></tr></thead>
+      <tbody>
+        <tr><td>Seg e Ter</td><td>Leitura principal (capítulo do livro). Anote termos que não entendeu.</td><td>~2 h</td></tr>
+        <tr><td>Qua</td><td>Artigos da semana.</td><td>~1 h</td></tr>
+        <tr><td>Qui</td><td>Vídeo da semana.</td><td>~1 h</td></tr>
+        <tr><td>Sáb</td><td>Prática no laboratório, seguindo os passos.</td><td>~2–3 h</td></tr>
+        <tr><td>Dom</td><td>Responda as perguntas de autoavaliação sem consultar, leia o caso real da semana (quando houver) e escreva uma nota de uma página: quando usar, quando não usar, qual o trade-off.</td><td>~1 h</td></tr>
+        <tr><td>Último dom. do mês</td><td>Escreva o ADR da decisão mais importante da entrega do mês.</td><td>~30 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="tip" style="border-color:var(--done);background:var(--done-soft)"><strong>Português e inglês:</strong> cada referência tem uma etiqueta <span class="lg lg-pt">PT</span> ou <span class="lg lg-en">EN</span>, e o seletor no topo esconde o que você não quiser ver. Comece pelo português. Para ir ganhando inglês, abra um item EN por semana: no YouTube, ative as legendas e use Configurações → Legendas → Traduzir automaticamente → Português; nos artigos, use a tradução do navegador e depois tente reler o original.</p>
+  <p class="tip"><strong>Vídeos em português:</strong> aparecem como links de busca no YouTube com o termo certo, porque títulos e canais mudam com frequência. Canais brasileiros que costumam ter bom conteúdo desses temas: LINUXtips, Full Cycle, Akitando e Código Fonte TV.</p>
+  <p class="tip"><strong>Se atrasar:</strong> corte primeiro o vídeo e o que está marcado como opcional. Nunca corte a leitura principal nem a prática.</p>
+</section>
+
+<section class="block" id="livros">
+  <h2>Livros</h2>
+  <p class="lead">Nas semanas, cada livro aparece pela sigla em azul; clique nela para voltar a esta lista. Referências são por capítulo e seção, não por página, porque a paginação muda entre edições e traduções.</p>
+  <div id="library" class="shelf"></div>
+</section>
+
+<section id="cronograma" style="padding-top:48px">
+  <h2 style="font-size:clamp(1.6rem,3.5vw,2.2rem)">Cronograma</h2>
+  <p class="lead" style="color:var(--muted);max-width:64ch;margin-top:8px">Clique numa semana para abrir o conteúdo e o roteiro. Marque a caixa quando terminar a autoavaliação de domingo.</p>
+  <main id="plan"></main>
+</section>
+
+<section class="block" id="adrs">
+  <h2>ADRs: registrar decisões de arquitetura</h2>
+  <p class="lead">Um ADR (Architecture Decision Record) é um texto curto que registra uma decisão importante: o contexto, o que foi decidido, as alternativas e as consequências. Serve para que, daqui a um ano, alguém entenda por que o sistema é do jeito que é, inclusive você.</p>
+
+  <div class="two">
+    <div>
+      <h3>Quando escrever um</h3>
+      <p>Quando a decisão é difícil de reverter, tinha alternativas reais, afeta mais de um serviço ou time, ou quando alguém certamente vai perguntar “por que é assim?” daqui a seis meses. Decisões fáceis de desfazer não precisam de ADR.</p>
+      <h3>Como praticar neste plano</h3>
+      <p>No último domingo de cada mês, escreva o ADR da decisão mais importante da entrega do mês. No fim dos 8 meses, você terá cerca de 8 ADRs do laboratório. Guarde em <code>docs/adr/</code> no repositório, numerados e nunca apagados: quando uma decisão muda, escreva um novo ADR que substitui o antigo.</p>
+      <h3>Modelo</h3>
+<pre class="tpl"># ADR-000: título no formato de decisão
+
+Status: proposto | aceito | substituído pelo ADR-00X
+Data: AAAA-MM-DD
+
+## Contexto
+O problema, as forças em jogo e as restrições.
+
+## Decisão
+O que foi decidido, em uma ou duas frases.
+
+## Alternativas consideradas
+Cada opção descartada e por quê.
+
+## Consequências
+O que melhora, o que piora e o que precisa ser monitorado.</pre>
+    </div>
+    <div>
+      <h3>Exemplo preenchido, com o laboratório</h3>
+<pre class="tpl"># ADR-003: Publicar eventos de pedido com transactional outbox
+
+Status: aceito
+Data: 2027-02-14
+
+## Contexto
+O serviço de pedidos grava no Postgres e precisa publicar
+PedidoCriado no Kafka. Gravar e publicar em passos separados
+pode perder eventos (commit sem publicação) ou publicar
+eventos de pedidos que nunca foram salvos.
+
+## Decisão
+Gravar o evento numa tabela outbox na mesma transação do
+pedido. Um publicador lê a outbox e envia ao Kafka, usando
+o id do pedido como chave. Consumidores são idempotentes.
+
+## Alternativas consideradas
+- Publicar logo após o commit: simples, mas perde eventos
+  se o processo cair entre os dois passos.
+- CDC com Debezium: robusto, mas exige operar mais um
+  componente agora.
+- Transação distribuída (2PC): não suportada pelo Kafka
+  e acopla a disponibilidade dos dois sistemas.
+
+## Consequências
++ Nenhum evento perdido; ordem garantida por pedido.
+- Alguns segundos de atraso na publicação.
+- Entrega at-least-once: consumidores precisam deduplicar.
+- A tabela outbox precisa de limpeza periódica.
+Revisar se o volume passar de ~500 eventos/s (avaliar Debezium).</pre>
+    </div>
+  </div>
+
+  <h3 class="sub">Para ler e se inspirar</h3>
+  <ul class="res plain" id="adr-links"></ul>
+
+  <h3 class="sub">Decisões reais de empresas</h3>
+  <p class="muted">Nenhuma destas foi publicada no formato de ADR, mas todas têm contexto, decisão, alternativas e consequências. Um bom exercício é reescrever uma delas como ADR. Cada caso também aparece na semana relacionada do cronograma.</p>
+  <div class="cases" id="decisoes"></div>
+</section>
+
+<section class="block" id="postmortems">
+  <h2>Postmortems: aprender com incidentes reais</h2>
+  <p class="lead">Postmortem é o relato escrito depois de um incidente: o que aconteceu, por que aconteceu, por que se espalhou e o que muda para não se repetir. Os bons são “sem culpados” (blameless): focam em como o sistema permitiu o erro, não em quem errou. Ler postmortems de grandes empresas mostra falhas em cascata, SPOFs e retries descontrolados acontecendo de verdade.</p>
+
+  <div class="two">
+    <div>
+      <h3>Como ler um postmortem</h3>
+      <ol class="qs">
+        <li>Qual foi o impacto e quanto tempo durou?</li>
+        <li>Qual foi o gatilho: a mudança ou o evento que deu início a tudo?</li>
+        <li>Qual foi a causa de fundo: o que permitiu o gatilho virar um incidente?</li>
+        <li>Por que se espalhou: dependências, retries, falta de isolamento?</li>
+        <li>Como foi detectado, e por que o diagnóstico demorou?</li>
+        <li>Quais ações foram tomadas, e em qual semana do plano está cada assunto?</li>
+      </ol>
+      <p>Feche com três linhas suas: o que no seu sistema poderia falhar do mesmo jeito.</p>
+    </div>
+    <div>
+      <h3>Como praticar neste plano</h3>
+      <p>Cada semana com um caso real mostra a linha “Caso real” no roteiro: leia no domingo, junto da autoavaliação. No mês 7, escreva o postmortem do seu game day usando o modelo abaixo.</p>
+<pre class="tpl"># Postmortem: título
+
+Data e duração:
+Impacto: quem foi afetado e como
+
+## Resumo (3 linhas)
+## Linha do tempo
+## Causa raiz e fatores que contribuíram
+## O que funcionou / o que não funcionou
+## Ações
+| Ação | Dono | Prazo |</pre>
+    </div>
+  </div>
+
+  <h3 class="sub">Para ler e se inspirar</h3>
+  <ul class="res plain" id="pm-links"></ul>
+
+  <h3 class="sub">Incidentes reais</h3>
+  <div class="cases" id="incidentes"></div>
+</section>
+
+<section class="final">
+  <h2>Depois das 32 semanas</h2>
+  <p>Use as semanas de folga para refazer os estudos de caso da semana 32 com o System Design Interview vol. 2 e para revisar as notas de uma página. Elas são o seu material de revisão para entrevistas e decisões de arquitetura.</p>
+</section>
+
+</div>
+
+<script>
+const BOOKS = [
+ {code:"FID",group:"pt_essencial",lang:"pt",url:"https://fidelissauro.dev/system-design-sumario/",title:"Série System Design — blog fidelissauro.dev",author:"Matheus Fidelis, o instrutor do curso · gratuito",pt:"",why:"Um capítulo em português para quase cada aula da grade, escrito pelo próprio instrutor. É a sua leitura principal em português: cada semana tem o link direto para o capítulo."},
+ {code:"PID",group:"pt_essencial",lang:"pt",title:"Projetando Aplicações com Uso Intensivo de Dados – 2ª Edição",author:"Martin Kleppmann e Chris Riccomini · Novatec · 2026",pt:"",why:"Tradução da 2ª edição do DDIA, o livro mais importante do plano. Os capítulos mudaram em relação à 1ª edição em inglês, então cada semana indica o capítulo e a seção desta edição em português."},
+ {code:"BM",group:"pt_essencial",lang:"pt",title:"Criando Microsserviços – 2ª Edição (Building Microservices)",author:"Sam Newman · Novatec · 2022",pt:"Mesma numeração de capítulos do original em inglês.",why:"Visão prática de microsserviços: decomposição, comunicação, deploy, resiliência, escala e observabilidade."},
+ {code:"SRE",group:"pt_essencial",lang:"pt",title:"Engenharia de Confiabilidade do Google (Site Reliability Engineering)",author:"Google · Novatec · 2016",pt:"O original em inglês é gratuito em sre.google/books. Mesma numeração de capítulos.",why:"Capítulos sobre SLOs, monitoramento, balanceamento de carga, sobrecarga, falhas em cascata e consenso."},
+ {code:"APD",group:"pt_essencial",lang:"pt",title:"Arquitetura de Software: As Partes Difíceis",author:"Neal Ford, Mark Richards, Pramod Sadalage e Zhamak Dehghani · Alta Books · 2024",pt:"",why:"Substitui o Microservices Patterns para quem lê em português: granularidade de serviços, dados distribuídos, orquestração vs coreografia e sagas, sempre com análise de trade-offs."},
+ {code:"FAS",group:"pt_apoio",lang:"pt",title:"Fundamentos da Arquitetura de Software – 2ª Edição",author:"Mark Richards e Neal Ford · Novatec",pt:"",why:"Visão geral do papel do arquiteto, estilos de arquitetura e como registrar e comunicar decisões, incluindo ADRs."},
+ {code:"SDW",group:"pt_apoio",lang:"pt",title:"System Design Workbook – Edição 2026",author:"Matheus Fidelis · vendido pela LINUXtips",pt:"",why:"O livro do instrutor, que compila o conteúdo da série. Opcional, porque o blog é gratuito; vale se você preferir ler no papel."},
+ {code:"CMOE",group:"pt_apoio",lang:"pt",title:"Construindo Microsserviços Orientados a Eventos – 2ª Edição",author:"Adam Bellemare · Novatec",pt:"",why:"Eventos, streams, consistência eventual e integração entre serviços por eventos. Complementa as semanas de mensageria, CQRS e event sourcing."},
+ {code:"MSMM",group:"pt_apoio",lang:"pt",title:"Migrando Sistemas Monolíticos para Microsserviços",author:"Sam Newman · Novatec",pt:"",why:"Padrões para extrair serviços de um monólito aos poucos, incluindo strangler fig e decomposição do banco."},
+ {code:"SOM",group:"pt_apoio",lang:"pt",title:"Sistemas Operacionais Modernos",author:"Andrew Tanenbaum e Herbert Bos · Pearson",pt:"",why:"Alternativa em português ao OSTEP para concorrência, discos e RAID."},
+ {code:"TSD",group:"pt_apoio",lang:"pt",title:"Sistemas Distribuídos: Princípios e Paradigmas",author:"Andrew Tanenbaum e Maarten van Steen · Pearson",pt:"",why:"Livro-texto clássico: consistência e replicação, sincronização, eleição de líder e tolerância a falhas."},
+ {code:"EC",group:"pt_apoio",lang:"pt",title:"Entrega Contínua",author:"Jez Humble e David Farley · Bookman",pt:"",why:"Tradução de Continuous Delivery: pipelines, estratégias de deploy e migrações de banco."},
+ {code:"KUR",group:"pt_apoio",lang:"pt",title:"Redes de Computadores e a Internet",author:"Kurose e Ross · Pearson",pt:"",why:"Livro-texto de redes, para reforçar HTTP, DNS e TCP."},
+ {code:"ESM",group:"pt_apoio",lang:"pt",url:"https://engsoftmoderna.info/",title:"Engenharia de Software Moderna",author:"Marco Tulio Valente (UFMG) · gratuito online",pt:"",why:"Livro brasileiro. O capítulo de arquitetura dá uma boa base sobre camadas, microsserviços e filas."},
+ {code:"AZ",group:"pt_apoio",lang:"pt",url:"https://learn.microsoft.com/pt-br/azure/architecture/patterns/",title:"Azure Architecture Center — catálogo de padrões de nuvem (pt-br)",author:"Microsoft · gratuito",pt:"",why:"Descrições curtas, em português, de padrões como Cache-Aside, Circuit Breaker, Bulkhead, Saga, CQRS e Sharding. Os padrões valem para qualquer nuvem."},
+
+ {code:"DDIA",group:"essencial",title:"Designing Data-Intensive Applications, 1ª edição",author:"Martin Kleppmann · O'Reilly · 2017",pt:"Em português existe a tradução da 2ª edição (PID), com capítulos reorganizados.",why:"O livro mais importante do plano. As referências em inglês usam a numeração da 1ª edição."},
+ {code:"MP",group:"essencial",title:"Microservices Patterns",author:"Chris Richardson · Manning · 2018",pt:"Sem tradução; em português, use o APD.",why:"Referência dos padrões de dados distribuídos: saga, CQRS, event sourcing, API gateway. Exemplos em Java/Spring."},
+ {code:"RI",group:"essencial",title:"Release It!, 2ª edição",author:"Michael Nygard · Pragmatic Bookshelf · 2018",pt:"Sem tradução.",why:"O clássico sobre padrões de estabilidade: timeouts, circuit breaker, bulkheads e as falhas que eles evitam."},
+ {code:"SDI",group:"essencial",title:"System Design Interview – An Insider's Guide, vol. 1",author:"Alex Xu · 2020",pt:"Sem tradução.",why:"Curto e direto. Ensina estimativas e o formato de entrevista, e traz estudos de caso completos."},
+ {code:"SREW",group:"gratis",title:"The Site Reliability Workbook",author:"Google · gratuito em sre.google/books",pt:"",why:"Complemento prático do SRE Book. Usado para canary releases e alertas por SLO."},
+ {code:"OSTEP",group:"gratis",title:"Operating Systems: Three Easy Pieces",author:"Remzi e Andrea Arpaci-Dusseau · gratuito em ostep.org",pt:"",why:"Fundamentos de sistema operacional: concorrência, I/O, discos e RAID. Capítulos curtos e muito claros."},
+ {code:"HPBN",group:"gratis",title:"High Performance Browser Networking",author:"Ilya Grigorik · gratuito em hpbn.co",pt:"",why:"Redes do ponto de vista de quem constrói aplicações: latência, TCP, TLS, HTTP/2."},
+ {code:"DBI",group:"apoio",title:"Database Internals",author:"Alex Petrov · O'Reilly",pt:"",why:"Como bancos funcionam por dentro: B-Trees, LSM, replicação e consenso."},
+ {code:"KC",group:"apoio",title:"Kotlin Coroutines: Deep Dive",author:"Marcin Moskała",pt:"",why:"Coroutines e structured concurrency em profundidade."},
+ {code:"KDG",group:"apoio",title:"Kafka: The Definitive Guide, 2ª edição",author:"Shapira, Palino, Sivaram, Petty · O'Reilly",pt:"",why:"Funcionamento do Kafka: produtores, consumidores, garantias e operação."},
+ {code:"OE",group:"apoio",title:"Observability Engineering",author:"Majors, Fong-Jones, Miranda · O'Reilly",pt:"",why:"Observabilidade moderna, eventos estruturados e SLOs."},
+ {code:"ASIA",group:"apoio",title:"API Security in Action",author:"Neil Madden · Manning",pt:"",why:"Segurança de APIs na prática: autenticação, tokens, autorização e limites."},
+ {code:"SP",group:"apoio",title:"Systems Performance, 2ª edição",author:"Brendan Gregg · Addison-Wesley",pt:"",why:"Metodologias de análise de performance, incluindo o método USE."}
+];
+const GROUPS = {
+ pt_essencial:["Em português — essenciais","Comece por aqui. O blog é gratuito, e os quatro livros cobrem a maior parte do plano."],
+ pt_apoio:["Em português — apoio","Opcionais, para aprofundar um tema ou ler no papel."],
+ essencial:["Em inglês — essenciais","Para quando quiser treinar o inglês. São as referências de mercado, e continuam indicadas em cada semana."],
+ gratis:["Em inglês — gratuitos","Leitura online, sem custo."],
+ apoio:["Em inglês — apoio","Opcionais."]
+};
+
+const MONTHS = [
+{title:"Fundamentos de infraestrutura",goal:"Entender o que acontece por baixo de qualquer sistema: rede, disco e o modelo de concorrência da JVM. É a base para interpretar latência e gargalos no resto do plano.",
+ deliver:"Relatório de baseline de um endpoint do laboratório: tempo de cada fase de rede (DNS, TCP, TLS, resposta), IOPS do banco e throughput com cada modelo de concorrência testado.",
+ weeks:[
+ {id:"s1",aula:1,title:"Protocolos de rede",
+  resumo:"Todo sistema distribuído é, antes de tudo, comunicação pela rede, e a rede é lenta, falha e tem custo. Entender o que acontece entre a chamada e a resposta (DNS, handshake TCP, TLS, HTTP) explica boa parte da latência que você vê em produção e por que connection pooling, keep-alive e HTTP/2 fazem tanta diferença.",
+  conceitos:[["Latência e largura de banda","Latência é o tempo de ida; banda é quanto passa por segundo. Para requisições pequenas, quase sempre a latência domina."],["RTT","Round-trip time: ida e volta. A maioria dos custos de rede se mede em quantos RTTs uma operação exige."],["Handshake TCP","Três mensagens antes de enviar dados. Abrir conexão nova custa 1 RTT a mais."],["Slow start","O TCP começa enviando pouco e aumenta aos poucos; conexões novas são lentas no início."],["TLS 1.2 vs 1.3","O handshake do TLS 1.3 custa 1 RTT; o 1.2 custa 2."],["Head-of-line blocking","Um pacote perdido segura os seguintes. HTTP/2 resolve na camada HTTP, HTTP/3 (QUIC) resolve também no transporte."],["DNS e TTL","Nomes resolvidos ficam em cache pelo TTL; TTL alto atrasa mudanças de IP."]],
+  tradeoff:"Reaproveitar conexões (pool, keep-alive, multiplexação HTTP/2) reduz muito a latência, mas conexões longas ficam presas a um backend e atrapalham o balanceamento.",
+  ler:["HPBN|cap. 1 (Primer on Latency and Bandwidth), 2 (Building Blocks of TCP) e 4 (TLS)","HPBN|cap. 9 (Brief History of HTTP) e 12 (HTTP/2)"],
+  artigo:["Posts e zines de Julia Evans sobre DNS (busque por “Julia Evans DNS”)","“Latency Numbers Every Programmer Should Know” (Jeff Dean)"],
+  video:["Hussein Nasser — vídeos sobre TCP e HTTP/2 no canal dele"],
+  pratica:["Rode dig +trace num domínio seu e identifique cada servidor consultado.","Use curl -w com time_namelookup, time_connect, time_appconnect e time_starttransfer para medir cada fase de uma chamada HTTPS.","Capture o handshake com tcpdump ou Wireshark.","No laboratório, compare a latência de chamadas entre serviços com e sem pool de conexões HTTP."],
+  check:["Quantos RTTs custa a primeira requisição HTTPS com TLS 1.3, fora o DNS?","Por que um balanceador de camada 4 distribui mal tráfego gRPC?","O que acontece quando um serviço muda de IP e o TTL do DNS é de uma hora?"],
+  extra:["KUR|cap. 2 (HTTP e DNS) e seção de TCP do cap. 3 (opcional)"]},
+ {id:"s2",aula:2,title:"Storage, RAID e I/O",
+  resumo:"Todo banco, fila e log é, no fim, leitura e escrita em disco. A diferença entre acesso sequencial e aleatório, o papel do page cache e do fsync, e o comportamento de SSDs e volumes de rede (EBS) explicam por que o Kafka é rápido, por que LSM-trees existem e por que um banco engasga quando falta IOPS.",
+  conceitos:[["IOPS, throughput, latência","Operações por segundo, bytes por segundo e tempo por operação. Um disco pode ter muito de um e pouco de outro."],["Sequencial vs aleatório","Ler e escrever em sequência é ordens de grandeza mais rápido, principalmente em HDD."],["Page cache e fsync","O SO segura escritas em memória; só o fsync garante que chegaram ao disco."],["RAID 0, 1, 5, 10","Combinações de discos que trocam desempenho, capacidade e redundância. RAID 5 tem penalidade de escrita."],["B-Tree","Estrutura que atualiza páginas no lugar. Leitura previsível."],["LSM-Tree","Escreve tudo em sequência e compacta depois. Escrita muito rápida, leitura pode consultar vários arquivos."],["Volume de rede","EBS gp3 permite provisionar IOPS e throughput separadamente; cada I/O atravessa a rede."]],
+  tradeoff:"Durabilidade custa latência: fazer fsync a cada escrita é seguro e lento; agrupar escritas (group commit) troca um pouco de latência por muito throughput.",
+  ler:["OSTEP|cap. 36 (I/O Devices), 37 (Hard Disk Drives) e 38 (RAID)","DDIA|cap. 3, da abertura até “Comparing B-Trees and LSM-Trees”"],
+  artigo:["Documentação da AWS sobre tipos de volume EBS (gp3, io2): IOPS e throughput"],
+  video:["CMU 15-445 (Andy Pavlo) — aulas “Database Storage” partes 1 e 2"],
+  pratica:["Instale o fio e rode leitura aleatória com blocos de 4k e leitura sequencial com blocos de 1M. Compare IOPS e throughput.","Repita com --direct=1 para tirar o page cache da jogada.","Rode escrita com e sem --fsync=1 e compare a latência."],
+  check:["Por que o Kafka consegue throughput altíssimo mesmo em disco comum?","Qual RAID você escolheria para um banco com muita escrita, e por quê?","O que pode ser perdido se o banco confirmar a escrita antes do fsync?"],
+  extra:["OSTEP|cap. 44 (Flash-based SSDs) (opcional)","DBI|parte I, capítulos de B-Trees e de armazenamento log-structured (opcional)"]},
+ {id:"s3",aula:11,title:"Concorrência e paralelismo",aside:"Antecipada na ordem porque é fundamento para o resto.",
+  resumo:"Concorrência é lidar com muitas coisas ao mesmo tempo (estrutura); paralelismo é fazer muitas ao mesmo tempo (execução). Em backend JVM, o gargalo típico é I/O, não CPU, e o modelo de concorrência (thread por requisição, virtual threads, coroutines) define quantas requisições simultâneas uma task aguenta.",
+  conceitos:[["CPU-bound vs I/O-bound","Código que calcula vs código que espera. Mais threads só ajudam no segundo caso."],["Race condition e locks","Dois fluxos alterando o mesmo dado sem coordenação. Locks resolvem e podem causar deadlock."],["Lei de Little","Requisições simultâneas = throughput × latência. Base para dimensionar pools."],["Thread pool","Número fixo de threads do SO; cada uma custa memória e troca de contexto."],["Virtual threads","Threads leves do JDK 21. Bloquear fica barato. Blocos synchronized podiam fixar a thread (pinning) em versões anteriores ao JDK 24."],["Coroutines","Suspensão cooperativa do Kotlin, com structured concurrency para cancelamento e escopo."],["Lei de Amdahl","A parte sequencial limita o ganho máximo de paralelizar."]],
+  tradeoff:"Mais concorrência aumenta o throughput até saturar um recurso compartilhado, como o pool de conexões do banco. A partir daí só cresce a latência.",
+  ler:["OSTEP|cap. 26 (Concurrency: An Introduction), 28 (Locks) e 32 (Common Concurrency Problems)","JEP 444 (Virtual Threads), texto oficial no site do OpenJDK"],
+  artigo:["Documentação do Spring Boot sobre virtual threads (spring.threads.virtual.enabled)","Lei de Amdahl (qualquer explicação introdutória)"],
+  video:["Rob Pike — “Concurrency is not Parallelism”"],
+  pratica:["Crie um endpoint que chama um serviço lento (200 ms).","Rode três versões: thread pool com 200 threads, virtual threads e coroutines.","Aplique carga com k6 (1.000 usuários virtuais) e compare throughput, p99 e número de threads.","Limite o pool do Hikari a 10 conexões e veja o gargalo mudar de lugar."],
+  check:["Por que virtual threads não aceleram código CPU-bound?","Com 500 req/s e 200 ms de latência, quantas requisições estão em andamento ao mesmo tempo?","O que é pinning de virtual threads e quando acontecia?"],
+  extra:["KC|partes sobre structured concurrency e dispatchers (opcional)"]}
+ ]},
+{title:"Dados",goal:"Dominar as decisões mais difíceis de desfazer: garantias de consistência, modelo de dados, índices, replicação e particionamento.",
+ deliver:"Documento de dados do laboratório: modelo, índices justificados por consulta, estratégia de réplica de leitura e a chave de particionamento que você usaria se o volume crescesse 100 vezes.",
+ weeks:[
+ {id:"s4",aula:3,title:"CAP, PACELC, ACID e BASE",
+  resumo:"Quando há réplicas e a rede pode particionar, é preciso escolher entre continuar respondendo (disponibilidade) ou garantir que todos vejam o mesmo dado (consistência). O PACELC completa o CAP: mesmo sem partição, há uma troca entre latência e consistência, e essa é a escolha que você faz todo dia. ACID e BASE descrevem conjuntos de garantias de transações.",
+  conceitos:[["C do CAP","Linearizabilidade: toda leitura vê a escrita mais recente. Não é o mesmo C do ACID."],["Partição de rede","Nós que não conseguem se comunicar. Em sistemas distribuídos, não é opcional."],["PACELC","Se há partição (P), escolha A ou C; senão (E), escolha latência (L) ou consistência (C)."],["ACID","Atomicidade, consistência, isolamento e durabilidade."],["Níveis de isolamento","Read committed, snapshot isolation (repeatable read no Postgres) e serializable."],["Anomalias","Dirty read, lost update, write skew, phantom. Cada nível previne algumas."],["BASE","Basically available, soft state, eventual consistency: aceita divergência temporária."]],
+  tradeoff:"Consistência forte exige coordenação entre réplicas, o que custa latência sempre e disponibilidade durante falhas. Consistência eventual é rápida, mas a aplicação precisa lidar com dados desatualizados e conflitos.",
+  ler:["DDIA|cap. 7 (Transactions) inteiro — é longo, use seg a qua se precisar","DDIA|cap. 9, da seção “Linearizability” até “The Cost of Linearizability”"],
+  artigo:["Martin Kleppmann — “Please stop calling databases CP or AP”","Daniel Abadi — “Consistency Tradeoffs in Modern Distributed Database System Design” (origem do PACELC)","Eric Brewer — “CAP Twelve Years Later: How the Rules Have Changed”"],
+  video:["Martin Kleppmann — série “Distributed Systems” (Universidade de Cambridge), aula sobre linearizabilidade"],
+  pratica:["No Postgres, abra duas sessões e reproduza um lost update em read committed (duas atualizações de estoque simultâneas).","Resolva de três formas: SELECT … FOR UPDATE, isolamento REPEATABLE READ (observe o erro de serialização) e lock otimista com @Version no JPA.","Anote qual solução você usaria para o estoque do marketplace e por quê."],
+  check:["Por que um Postgres com réplica assíncrona não é “CA”?","Qual anomalia o snapshot isolation não previne?","Onde o DynamoDB se encaixa no PACELC, e como a leitura fortemente consistente muda isso?"],
+  extra:["Análises do Jepsen (Kyle Kingsbury) sobre um banco que você usa (opcional)"]},
+ {id:"s5",aula:4,title:"Modelos de dados e indexação",
+  resumo:"O modelo de dados (relacional, documento, chave-valor, colunar, grafo) define quais consultas são baratas. Índices aceleram leituras ao custo de escrita e espaço. A escolha certa começa pelos padrões de acesso, não pela tecnologia da moda.",
+  conceitos:[["Normalizar vs desnormalizar","Normalizar evita duplicação; desnormalizar evita joins e acelera leitura."],["Modelo documento","Dados acessados juntos ficam juntos. Ruim para relações muitos-para-muitos."],["Chave-valor / wide-column","DynamoDB, Cassandra: modela-se a partir das consultas, não das entidades."],["B+Tree","Estrutura padrão de índices relacionais."],["Índice composto","A ordem das colunas importa: só o prefixo mais à esquerda é aproveitado."],["Covering index","Índice que contém todas as colunas da consulta; evita ir à tabela."],["Índice parcial","Indexa só as linhas que atendem uma condição (ex.: anúncios ativos)."]],
+  tradeoff:"Cada índice acelera algumas leituras e deixa toda escrita mais cara. Desnormalizar acelera a leitura e cria o problema de manter cópias consistentes.",
+  ler:["DDIA|cap. 2 (Data Models and Query Languages)","Use The Index, Luke (Markus Winand, gratuito online): capítulos “Anatomy of an Index” e “The Where Clause”"],
+  artigo:["Use The Index, Luke: capítulo sobre ordenação e paginação (ORDER BY)"],
+  video:["CMU 15-445 — aulas sobre B+Tree indexes"],
+  pratica:["Crie a tabela de anúncios com 1 milhão de linhas usando generate_series.","Rode a busca por categoria e faixa de preço com EXPLAIN (ANALYZE, BUFFERS): sem índice, com índice em categoria, com índice (categoria, preço) e com INCLUDE.","Inverta a ordem das colunas do índice e observe o plano mudar.","Crie um índice parcial só para anúncios ativos e compare o tamanho."],
+  check:["Por que um índice em (a, b) não serve para WHERE b = ?","Quando um índice piora a performance geral do sistema?","Quando você escolheria DynamoDB em vez de Postgres para uma entidade?"],
+  extra:["DDIA|cap. 3, segunda metade (column-oriented storage) (opcional)"]},
+ {id:"s6",aula:17,title:"Replicação",aside:"Movida para perto de CAP, porque os dois temas se explicam.",
+  resumo:"Replicar é manter cópias do mesmo dado em várias máquinas para tolerar falhas, escalar leitura e reduzir latência geográfica. O difícil é lidar com mudanças: quem aceita escrita, quando a réplica fica atualizada e o que fazer em conflito.",
+  conceitos:[["Líder único","Um nó aceita escritas e as repassa às réplicas. O modelo do Postgres e do RDS."],["Síncrona vs assíncrona","Síncrona espera a réplica confirmar; assíncrona não espera."],["Replication lag","Atraso da réplica. Causa anomalias como não ver o que você acabou de escrever."],["Read-your-writes","Garantia de que o usuário vê as próprias escritas."],["Failover e split brain","Promover uma réplica a líder; split brain é quando dois nós acham que são líderes."],["Multi-líder","Vários nós aceitam escrita; exige resolução de conflitos (last-write-wins, CRDTs)."],["Leaderless e quórum","Escreve em w nós, lê de r; com w + r > n, leitura e escrita se sobrepõem."]],
+  tradeoff:"Replicação síncrona garante que a réplica tem o dado, mas uma réplica lenta trava as escritas. Assíncrona é rápida, mas o failover pode perder escritas já confirmadas ao cliente.",
+  ler:["DDIA|cap. 5 (Replication) inteiro — o capítulo mais importante do mês, use seg a qua"],
+  artigo:["Paper do Dynamo (Amazon, 2007): seções sobre replicação e versionamento","Documentação do RDS: diferença entre Multi-AZ e read replicas"],
+  video:["Martin Kleppmann — série “Distributed Systems” (Cambridge), aulas sobre replicação"],
+  pratica:["Suba no docker-compose um Postgres primário com uma réplica por streaming replication.","No Spring, roteie leituras para a réplica e escritas para o primário (AbstractRoutingDataSource).","Pause a réplica com pg_wal_replay_pause() e reproduza a falha de read-your-writes.","Implemente a mitigação: ler do primário por alguns segundos após o usuário escrever."],
+  check:["Por que w + r > n não garante linearizabilidade sozinho?","O que é split brain e como fencing tokens ajudam?","Qual a diferença entre RDS Multi-AZ e read replica?"]},
+ {id:"s7",aula:16,title:"Sharding, particionamento e consistent hashing",
+  resumo:"Quando um nó não dá conta do volume de dados ou de escrita, o dado é dividido em partições (shards). A chave de particionamento é a decisão mais difícil de desfazer: define a distribuição de carga, quais consultas ficam locais e como o sistema cresce.",
+  conceitos:[["Range vs hash","Por intervalo mantém ordem e cria hot spots; por hash distribui bem e perde consultas por intervalo."],["Hot spot","Uma chave muito acessada (o vendedor famoso) sobrecarrega um shard."],["Consistent hashing","Nós e chaves num anel; adicionar um nó move só uma fração das chaves."],["Nós virtuais","Cada nó físico ocupa várias posições no anel para distribuir melhor."],["Índice secundário local vs global","Local exige consultar todos os shards; global exige atualização distribuída."],["Rebalanceamento","Mover partições quando nós entram ou saem."],["IDs distribuídos","Gerar IDs únicos e ordenáveis sem coordenação (formato Snowflake)."]],
+  tradeoff:"Particionar escala dados e escrita, mas consultas e transações que cruzam shards ficam caras ou impossíveis.",
+  ler:["DDIA|cap. 6 (Partitioning) inteiro","SDI|cap. 5 (consistent hashing) e cap. 7 (gerador de IDs únicos)"],
+  artigo:["Figma — “How Figma's databases team lived to tell the scale”","Discord — “How Discord stores trillions of messages”","Instagram Engineering — post sobre sharding e geração de IDs"],
+  video:["ByteByteGo — vídeo sobre consistent hashing"],
+  pratica:["Implemente em Kotlin um anel de consistent hashing com nós virtuais.","Distribua 100 mil chaves em 4 nós e meça o equilíbrio.","Adicione um 5º nó e conte quantas chaves mudaram de lugar (esperado: cerca de 1/5).","Compare com hash módulo N, em que a maioria das chaves muda."],
+  check:["Qual chave de particionamento você usaria para pedidos do marketplace, e qual consulta ela prejudica?","Por que usar nós virtuais?","Como gerar IDs únicos e ordenáveis sem um banco central?"]}
+ ]},
+{title:"Performance e escala",goal:"Aprender a medir direito, prever capacidade, validar com teste de carga e escolher como escalar e onde usar cache.",
+ deliver:"Relatório antes e depois: SLO de latência definido, capacidade por task medida no teste de carga, e o efeito do cache no p99 e na carga do banco.",
+ weeks:[
+ {id:"s8",aula:14,title:"Performance, capacidade e escalabilidade",
+  resumo:"Performance se mede em distribuição, não em média. Latência (p50, p99), throughput e utilização se relacionam: perto da saturação, a latência explode. Escalabilidade é manter a performance quando a carga cresce, com máquinas maiores (vertical) ou mais máquinas (horizontal).",
+  conceitos:[["Percentis","p99 é a latência que 99% das requisições não ultrapassam. É o que o usuário mais lento sente."],["Tail latency e fan-out","Quanto mais serviços uma requisição chama, maior a chance de pegar a cauda de algum."],["Utilização e filas","Perto de 100% de utilização, a fila e a latência crescem de forma não linear."],["Método USE","Para cada recurso: utilização, saturação e erros."],["Método RED","Para cada serviço: taxa, erros e duração."],["Coordinated omission","Erro de ferramenta de medição que esconde a latência real sob carga."],["Stateless","Serviço sem estado local; pré-requisito para escalar horizontalmente."]],
+  tradeoff:"Rodar com alta utilização economiza dinheiro, mas deixa sem folga para picos e piora a cauda da latência.",
+  ler:["DDIA|cap. 1, seções “Scalability”, “Describing Load” e “Describing Performance”","Página do método USE no site de Brendan Gregg"],
+  artigo:["Lei de Little aplicada a sistemas (qualquer explicação introdutória)"],
+  video:["Gil Tene — “How NOT to Measure Latency” (obrigatório)"],
+  pratica:["Habilite histogramas de latência no Micrometer (percentiles-histogram) e exponha p50, p95 e p99.","Monte um painel no Grafana com RED do serviço.","Aplique o método USE em CPU, memória, pool de threads e pool de conexões."],
+  check:["Um serviço chama 5 outros em paralelo, cada um com p99 de 100 ms. Qual a chance de uma requisição esbarrar em pelo menos uma latência de p99?","Por que a média de latência engana?","O que é coordinated omission?"],
+  extra:["SP|cap. 2 (Methodologies) (opcional)"]},
+ {id:"s9",aula:23,title:"Capacity planning",
+  resumo:"Planejar capacidade é prever a demanda e garantir recursos com folga, sem desperdiçar. Combina estimativa (conta de guardanapo), medição (quanto uma instância aguenta) e margem para pico, falha e crescimento.",
+  conceitos:[["Estimativa de ordem de grandeza","Usuários → requisições por dia → RPS médio → RPS de pico."],["Fator de pico","Quanto o pico excede a média (tipicamente 2× a 10×)."],["Capacidade por instância","Quanto uma task aguenta dentro do SLO. Só se sabe medindo."],["N+1 e perda de zona","Ter capacidade suficiente mesmo perdendo uma instância ou uma AZ."],["Headroom","Folga planejada acima do pico esperado."],["Autoscaling","Reativo (por métrica) ou agendado. Tem atraso para subir novas tasks."]],
+  tradeoff:"Autoscaling reduz custo, mas reage com atraso (tasks Fargate levam minutos para ficar prontas). Capacidade fixa com folga é previsível e mais cara.",
+  ler:["SDI|cap. 2 (Back-of-the-envelope estimation)","SRE|cap. 21 (Handling Overload)"],
+  artigo:["Documentação do ECS sobre Service Auto Scaling (target tracking e step scaling)"],
+  video:["ByteByteGo — vídeo sobre estimativas back-of-the-envelope"],
+  pratica:["Escreva a estimativa do marketplace: usuários diários, RPS médio, RPS de pico, tamanho de dados em um ano.","Calcule quantas tasks seriam necessárias, chutando a capacidade por task (você vai medir na semana seguinte).","Recalcule considerando a perda de 1 de 3 AZs."],
+  check:["Com 3 AZs e tolerância à perda de uma, quanto de capacidade extra você precisa?","Por que escalar por CPU pode falhar num serviço I/O-bound?","Qual métrica você usaria para escalar o serviço de pedidos?"],
+  extra:["SRE|cap. 18 (Software Engineering in SRE), caso Auxon (opcional)"]},
+ {id:"s10",aula:24,title:"Testes de carga e estresse",
+  resumo:"Teste de carga mostra como o sistema se comporta sob volume realista; teste de estresse procura o ponto de ruptura e como o sistema falha. Um bom teste tem objetivo claro, dados realistas e o modelo de carga correto.",
+  conceitos:[["Tipos de teste","Smoke (sanidade), load (carga esperada), stress (além do limite), spike (pico súbito), soak (longa duração)."],["Modelo aberto vs fechado","Aberto fixa a taxa de chegada; fechado fixa usuários que esperam a resposta. APIs públicas se comportam como modelo aberto."],["Thresholds","Critérios automáticos de aprovação, como p99 < 300 ms e erros < 1%."],["Ponto de saturação","Carga em que a latência começa a subir rápido."],["Ambiente representativo","Teste em ambiente muito diferente de produção dá números enganosos."]],
+  tradeoff:"Modelo fechado é mais fácil de configurar, mas esconde a degradação: quando o sistema fica lento, os usuários virtuais simplesmente mandam menos requisições.",
+  ler:["Documentação do k6: “Load test types” e “Scenarios” (executors)","SRE|cap. 17 (Testing for Reliability)"],
+  artigo:["Documentação do Gatling (roda na JVM e aceita DSL em Kotlin), para comparar com o k6"],
+  video:["Reveja o trecho do Gil Tene sobre coordinated omission"],
+  pratica:["Escreva um teste k6 com constant-arrival-rate subindo em degraus até o p99 estourar o SLO.","Registre o RPS máximo por task e compare com sua estimativa da semana 9.","Rode um spike test com ramping-arrival-rate.","Identifique qual recurso saturou primeiro (CPU, pool do banco, threads)."],
+  check:["Por que usar taxa de chegada constante em vez de usuários virtuais fixos?","Qual recurso saturou primeiro e como você sabe?","Qual foi o erro da sua estimativa da semana 9?"]},
+ {id:"s11",aula:15,title:"Scale cube",
+  resumo:"O AKF Scale Cube organiza as formas de escalar em três eixos: X (clonar instâncias atrás de um balanceador), Y (dividir por função, em serviços) e Z (dividir por dado ou cliente, em shards ou células). Ajuda a escolher qual eixo resolve o gargalo que você tem agora.",
+  conceitos:[["Eixo X","Réplicas idênticas. Simples e barato, mas não resolve gargalo de dados."],["Eixo Y","Decomposição funcional em serviços. Escala times e partes específicas."],["Eixo Z","Particionar por cliente, região ou chave. Escala dados e isola falhas."],["Pré-requisitos","X exige serviço stateless; Z exige uma boa chave de particionamento."]],
+  tradeoff:"X é o mais barato. Y dá autonomia aos times e cobra em complexidade distribuída. Z escala dados e isola falhas, mas complica roteamento e operações globais.",
+  ler:["BM|cap. 13 (Scaling), seção sobre os quatro eixos de escala"],
+  artigo:["AKF Partners — posts sobre o Scale Cube"],
+  video:["Qualquer palestra de Martin Abbott ou Michael Fisher sobre o AKF Scale Cube"],
+  pratica:["Para cada gargalo encontrado na semana 10, escreva qual eixo resolveria e qual o custo.","Monte uma tabela: gargalo, eixo, mudança necessária, risco."],
+  check:["O que impede escalar no eixo X um serviço com sessão em memória?","Quando o eixo Y piora a escalabilidade em vez de melhorar?","Qual a relação entre o eixo Z e a arquitetura cell-based (semana 29)?"],
+  extra:["The Art of Scalability (Abbott e Fisher), capítulos sobre o Scale Cube (opcional)"]},
+ {id:"s12",aula:5,title:"Estratégias de cache",
+  resumo:"Cache guarda resultados perto de quem consome para reduzir latência e carga. Os problemas difíceis são invalidação, consistência e o que acontece quando o cache falha ou está vazio.",
+  conceitos:[["Cache-aside","A aplicação consulta o cache e, se não achar, busca no banco e grava no cache. O padrão mais comum."],["Read-through / write-through","O cache busca e grava no banco por você."],["Write-behind","Grava no cache e persiste depois. Rápido e arriscado."],["TTL e invalidação","Expirar por tempo ou invalidar por evento quando o dado muda."],["Cache stampede","Muitas requisições recalculam a mesma chave ao mesmo tempo quando ela expira."],["Camadas","Cache local (Caffeine), distribuído (Redis) e CDN."],["Cache frio","Após deploy ou falha, o cache vazio joga toda a carga no banco."]],
+  tradeoff:"Mais cache significa menos latência e menos carga, mas dados desatualizados e uma dependência perigosa: se o banco só aguenta a carga com cache, a queda do cache vira queda total.",
+  ler:["BM|cap. 13, seção de caching","AWS Builders' Library — “Caching challenges and strategies”"],
+  artigo:["Paper “Scaling Memcache at Facebook” (NSDI 2013), seções sobre leases e thundering herd"],
+  video:["ByteByteGo — vídeos sobre estratégias de cache"],
+  pratica:["Implemente cache-aside com Redis nos detalhes de anúncio.","Use TTL com jitter (variação aleatória).","Simule um stampede: expire uma chave quente durante carga do k6.","Mitigue com lock (SET NX) ou Caffeine local com refreshAfterWrite e meça o hit ratio."],
+  check:["Por que colocar jitter no TTL?","O que acontece com o banco se o Redis cair no pico?","Quando write-through faz sentido?"]}
+ ]},
+{title:"Tráfego, borda e segurança",goal:"Entender como as requisições entram e circulam, e como proteger esse caminho: balanceadores, gateway, rate limiting, autenticação, autorização, segredos, BFF e service mesh.",
+ deliver:"Laboratório com gateway e rate limiting na frente, serviços validando JWT emitido pelo Keycloak, checagem de dono contra BOLA, segredos fora do código, balanceador com health check e um BFF agregando chamadas com timeout.",
+ weeks:[
+ {id:"s13",aula:7,title:"Load balancers e proxies reversos",
+  resumo:"O balanceador distribui requisições entre instâncias e tira de circulação as que estão doentes. O proxy reverso fica na frente dos serviços, terminando TLS, roteando e protegendo. A camada (4 ou 7) e o algoritmo afetam a distribuição e a latência.",
+  conceitos:[["L4 vs L7","L4 enxerga conexões TCP (NLB); L7 enxerga requisições HTTP (ALB)."],["Round-robin","Um de cada vez. Ruim quando instâncias ou requisições têm custos diferentes."],["Least connections / outstanding requests","Envia para quem está menos ocupado. O ALB oferece least outstanding requests."],["Power of two choices","Sorteia dois e escolhe o menos ocupado. Simples e muito eficaz."],["Health checks","Ativos (o LB pergunta) ou passivos (observa erros)."],["Connection draining","Tempo para terminar requisições antes de remover uma instância (deregistration delay)."],["Sticky sessions","Afinidade de cliente a uma instância. Ajuda cache local, desbalanceia carga."]],
+  tradeoff:"L7 roteia melhor porque vê cada requisição, mas custa mais processamento. Afinidade melhora cache local, mas desbalanceia.",
+  ler:["SRE|cap. 19 (Load Balancing at the Frontend) e 20 (Load Balancing in the Datacenter)"],
+  artigo:["Documentação do NGINX sobre load balancing HTTP","Documentação do ALB sobre algoritmos de roteamento"],
+  video:["Hussein Nasser — load balancer de camada 4 vs camada 7"],
+  pratica:["Suba HAProxy com 3 réplicas do serviço, uma delas artificialmente lenta.","Compare round-robin e leastconn olhando o p99 com carga do k6.","Derrube uma réplica e veja o health check agir.","Teste o draining num restart."],
+  check:["Por que round-robin vai mal com requisições de custo variável?","O que acontece se o deregistration delay for zero?","Por que tráfego gRPC num NLB fica desbalanceado?"],
+  extra:["Paper do Maglev (Google) (opcional)"]},
+ {id:"s14",aula:8,title:"API gateways e rate limiting",
+  resumo:"O gateway é a porta única de entrada: roteamento, autenticação, rate limiting, transformação e observabilidade. Rate limiting protege o sistema de sobrecarga e garante justiça entre clientes.",
+  conceitos:[["Responsabilidades transversais","O que todo serviço precisaria e faz sentido centralizar: autenticação, limites, logs."],["Gateway vs balanceador","O LB distribui; o gateway aplica políticas por rota e cliente."],["Token bucket","Fichas que se reabastecem a uma taxa. Permite rajadas controladas."],["Sliding window","Conta requisições numa janela deslizante. Mais preciso, mais caro."],["Rate limit distribuído","Contadores compartilhados (Redis) entre instâncias do gateway."],["429 e Retry-After","Resposta padrão ao cliente que estourou o limite."]],
+  tradeoff:"Centralizar simplifica políticas, mas cria um ponto único de falha e, se virar lugar de regra de negócio, um gargalo organizacional.",
+  ler:["MP|cap. 8 (External API patterns)","SDI|cap. 4 (Design a rate limiter)"],
+  artigo:["microservices.io — padrão API Gateway","Stripe — “Scaling your API with rate limiters”"],
+  video:["ByteByteGo — vídeos sobre API gateway e algoritmos de rate limiting"],
+  pratica:["Coloque o Spring Cloud Gateway na frente do laboratório.","Configure o RequestRateLimiter com Redis (token bucket) por usuário.","Estoure o limite com k6 e confira os 429.","Derrube o Redis e observe se o gateway falha aberto ou fechado."],
+  check:["Qual a diferença de comportamento entre token bucket e sliding window numa rajada?","O rate limiter deve falhar aberto ou fechado se o Redis cair?","Que lógica nunca deveria ir para o gateway?"]},
+ {id:"sec1",aula:null,title:"Segurança I: autenticação e autorização entre usuários e serviços",
+  resumo:"Toda requisição precisa responder a duas perguntas: quem é você (autenticação) e o que você pode fazer (autorização). Em sistemas distribuídos, isso vale também entre serviços, não só para usuários. OAuth 2.0 e OpenID Connect são o padrão de mercado, e o JWT é o formato de token mais comum. A maior parte dos problemas não está no protocolo, e sim em validar o token de forma incompleta.",
+  conceitos:[["Autenticação vs autorização","Provar identidade vs decidir permissão. Confundir as duas é a origem de muitas falhas."],["OAuth 2.0","Protocolo de delegação de acesso. Para usuários, o fluxo recomendado é authorization code com PKCE; entre serviços, client credentials."],["OpenID Connect","Camada de identidade sobre o OAuth 2.0. Adiciona o id token com dados de quem fez login."],["JWT","Token assinado com claims como iss (emissor), aud (destinatário) e exp (expiração). Assinado não é o mesmo que criptografado: qualquer um lê o conteúdo."],["JWKS e rotação de chaves","As chaves públicas para validar a assinatura ficam num endpoint; o serviço precisa acompanhar a troca de chaves."],["Escopos, RBAC e ABAC","Permissão por escopo do token, por papel do usuário ou por atributos do recurso."],["mTLS","TLS em que os dois lados apresentam certificado. Dá identidade forte entre serviços."],["Propagação de identidade","Repassar o token do usuário ou usar a identidade do próprio serviço em chamadas internas."]],
+  tradeoff:"Tokens autocontidos (JWT) evitam consultar o servidor de autorização a cada requisição, mas não podem ser revogados antes de expirar. Tokens opacos com introspecção são revogáveis na hora, ao custo de uma chamada extra. O meio-termo usual é JWT de vida curta com refresh token.",
+  ler:["BM|cap. 11 (Security), seções sobre autenticação, autorização e confiança implícita entre serviços","Documentação do Spring Security: “OAuth 2.0 Resource Server — JWT”"],
+  artigo:[{u:"https://www.oauth.com/",t:"Aaron Parecki — “OAuth 2.0 Simplified”"},"RFC 9700 — boas práticas de segurança do OAuth 2.0 (IETF, 2025), seções de recomendações"],
+  video:["Nate Barbettini — “OAuth 2.0 and OpenID Connect (in plain English)”"],
+  pratica:["Suba o Keycloak no docker-compose como provedor de identidade e crie um realm para o laboratório.","Configure o serviço de pedidos como Resource Server (spring-boot-starter-oauth2-resource-server) validando iss, aud e exp pelo JWKS.","Proteja os endpoints por escopo (pedidos:ler, pedidos:escrever).","Faça uma chamada serviço a serviço com client credentials.","Teste um token expirado, um com audiência errada e um com a assinatura adulterada."],
+  check:["Qual a diferença entre OAuth 2.0 e OpenID Connect?","Por que é obrigatório validar a audiência (aud) do token?","Como tirar o acesso de alguém que ainda tem um JWT válido?"],
+  extra:["ASIA|capítulos sobre tokens (opcional)"]},
+ {id:"sec2",aula:null,title:"Segurança II: APIs, segredos, permissões e cadeia de suprimentos",
+  resumo:"Autenticar não basta. A maior parte das falhas em APIs vem de autorização mal feita no nível do objeto (o usuário A consegue ler o pedido do usuário B), de respostas que expõem dados demais e de segredos mal guardados. Na nuvem, permissões IAM largas transformam uma falha pequena num vazamento grande. E a imagem de contêiner também é superfície de ataque: dependências vulneráveis entram junto com ela.",
+  conceitos:[["OWASP API Security Top 10","Lista das falhas mais comuns em APIs. A primeira é BOLA (Broken Object Level Authorization)."],["BOLA / IDOR","Acessar um recurso de outro usuário só trocando o id na URL."],["Exposição excessiva","Devolver a entidade inteira em vez de um DTO com os campos necessários."],["Gestão de segredos","Senhas e chaves em cofre (Secrets Manager), com rotação, injetadas em tempo de execução. Nunca no repositório."],["Task role vs execution role","No ECS, a execution role puxa imagem e segredos; a task role é o que o código da aplicação pode fazer na AWS."],["Menor privilégio","Cada identidade recebe só as permissões necessárias."],["Criptografia","Em trânsito (TLS) e em repouso (KMS, envelope encryption)."],["Cadeia de suprimentos","Imagem base mínima, varredura de vulnerabilidades, SBOM (lista de componentes) e assinatura de imagens."]],
+  tradeoff:"Segurança adiciona atrito: rotação de segredos, revisão de permissões, imagens homologadas. O custo de não ter aparece de uma vez só, num incidente.",
+  ler:[{u:"https://owasp.org/API-Security/",t:"OWASP API Security Top 10 (edição 2023)"},"BM|cap. 11 (Security), seções sobre segredos, criptografia e menor privilégio"],
+  artigo:[{u:"https://cheatsheetseries.owasp.org/",t:"OWASP Cheat Sheet Series — folhas de “Authorization” e “Secrets Management”"}],
+  video:["Palestras sobre BOLA / IDOR em APIs (busque “OWASP API Security Top 10” no YouTube)"],
+  pratica:["Teste BOLA no laboratório: com o token do usuário A, peça GET /pedidos/{id de um pedido do B}.","Corrija com checagem de dono no serviço e crie um teste automatizado para isso.","Revise as respostas: troque entidades por DTOs explícitos.","Mova os segredos do laboratório para o Secrets Manager (ou LocalStack, localmente) e injete no container.","Rode o Trivy nas imagens, gere um SBOM e revise a task role com menor privilégio."],
+  check:["O que é BOLA e por que é a falha número 1 em APIs?","Qual a diferença entre task role e execution role no ECS?","O que o incidente da Capital One ensina sobre permissões IAM?"],
+  extra:["ASIA|capítulos sobre autorização (opcional)"]},
+ {id:"s15",aula:9,title:"Backend for Frontends (BFF)",
+  resumo:"BFF é um backend específico por tipo de cliente (web, mobile, parceiro) que agrega e adapta APIs para aquela experiência. Normalmente é mantido pelo time do frontend correspondente.",
+  conceitos:[["Agregação","Uma chamada do cliente vira várias chamadas internas, feitas em paralelo."],["Adaptação","Payload moldado para a tela: menos campos, formato certo."],["Um BFF por experiência","Web e mobile têm necessidades diferentes."],["Resposta parcial","Se uma dependência falha, devolve o que tem em vez de erro total."],["GraphQL","Alternativa em que o cliente escolhe os campos."]],
+  tradeoff:"Autonomia do frontend e payloads otimizados, ao custo de mais serviços e alguma lógica duplicada entre BFFs.",
+  ler:["BM|cap. 14 (User Interfaces)"],
+  artigo:["Sam Newman — “Backends For Frontends”","Phil Calçado — texto sobre a origem do padrão na SoundCloud"],
+  video:["Sam Newman — palestras sobre BFF"],
+  pratica:["Crie um BFF mobile para a tela de anúncio: anúncio + vendedor + avaliações.","Faça as chamadas em paralelo com coroutines (async/await).","Aplique timeout por dependência e devolva resposta parcial se avaliações falharem."],
+  check:["Quando um BFF vira um mini-monólito?","Como lidar com uma dependência lenta numa agregação?","BFF ou GraphQL: o que pesaria na sua decisão?"]},
+ {id:"s16",aula:10,title:"Service mesh",aside:"Para ECS: a AWS anunciou o fim do App Mesh e indica o ECS Service Connect como caminho. Confira o status atual na documentação da AWS.",
+  resumo:"O service mesh tira do código a comunicação entre serviços (mTLS, retries, timeouts, métricas, roteamento) e a coloca em proxies ao lado de cada serviço, geralmente Envoy, controlados por um control plane.",
+  conceitos:[["Data plane","Os proxies que carregam o tráfego."],["Control plane","Quem configura os proxies."],["Sidecar","Proxy que roda junto de cada instância do serviço."],["mTLS","Criptografia e identidade entre serviços, sem código na aplicação."],["Traffic shifting","Mandar uma porcentagem do tráfego para uma versão nova."],["Sidecarless","Modelos sem sidecar por pod, como o ambient mode do Istio."]],
+  tradeoff:"Padroniza segurança e observabilidade sem mexer nas aplicações, mas adiciona latência, consumo de recursos e uma camada operacional complexa.",
+  ler:["BM|cap. 5, seção sobre service meshes","Documentação de conceitos do Istio (“What is a service mesh” e arquitetura)"],
+  artigo:["William Morgan — “The Service Mesh: What every software engineer needs to know about the world's most over-hyped technology”","Documentação do ECS Service Connect"],
+  video:["Palestras introdutórias de Istio ou Linkerd na KubeCon"],
+  pratica:["Desenhe como os serviços do laboratório ficariam no ECS com Service Connect.","Liste quais políticas de resiliência ficariam no mesh e quais no código.","Calcule o efeito de retries configurados ao mesmo tempo no mesh e na aplicação."],
+  check:["Por que retries no mesh e na aplicação podem multiplicar a carga?","Em que situação um mesh não vale o custo?","O que o control plane faz se cair?"],
+  extra:["Designing Distributed Systems (Brendan Burns), capítulos sobre sidecar e ambassador (opcional)"]}
+ ]},
+{title:"Arquitetura e comunicação",goal:"Decidir como dividir o sistema e como as partes conversam, de forma síncrona e assíncrona, sem perder dados.",
+ deliver:"Serviço de pedidos separado do monólito, comunicando por evento Kafka com transactional outbox e consumidor idempotente.",
+ weeks:[
+ {id:"s17",aula:6,title:"Monólitos, microsserviços e domínios",
+  resumo:"Microsserviço é um serviço implantável de forma independente, modelado em torno de um domínio de negócio e dono dos próprios dados. Os benefícios são sobretudo organizacionais (times autônomos, deploy independente); os custos são os de qualquer sistema distribuído.",
+  conceitos:[["Bounded context","Fronteira de um modelo de domínio (DDD). Bom candidato a serviço."],["Acoplamento","De domínio, temporal (precisa do outro no ar) e de implementação (conhece detalhes internos)."],["Database per service","Cada serviço é dono dos seus dados; ninguém acessa o banco do outro."],["Monólito modular","Um deploy, módulos com fronteiras claras. Frequentemente o melhor ponto de partida."],["Strangler fig","Extrair funcionalidades aos poucos, desviando tráfego para o novo serviço."],["Lei de Conway","A arquitetura tende a copiar a estrutura de comunicação da organização."]],
+  tradeoff:"Autonomia e escala independente, pagas com latência de rede, consistência eventual e operação e observabilidade mais caras.",
+  ler:["BM|cap. 1 (What Are Microservices?), 2 (How to Model Microservices) e 3 (Splitting the Monolith)"],
+  artigo:["James Lewis e Martin Fowler — “Microservices”","Martin Fowler — “MonolithFirst”","Uber — “Introducing Domain-Oriented Microservice Architecture”","Shopify — “Deconstructing the Monolith”"],
+  video:["Martin Fowler — “Microservices” (GOTO 2014)"],
+  pratica:["Mapeie os bounded contexts do marketplace: catálogo, pedidos, pagamento, usuários, avaliações.","Desenhe um context map com as relações entre eles.","Escolha qual extrair primeiro e escreva a justificativa."],
+  check:["Que sinais indicam que um monólito modular basta?","O que é acoplamento temporal?","Por que compartilhar banco entre serviços é um problema?"],
+  extra:["MP|cap. 2 (Decomposition strategies) (opcional)"]},
+ {id:"s18",aula:12,title:"Comunicação síncrona: HTTP, REST, RPC e gRPC",
+  resumo:"Na comunicação síncrona, quem chama espera a resposta. REST organiza a API em recursos e verbos HTTP; RPC e gRPC expõem operações com contratos tipados. O desafio é evoluir contratos sem quebrar clientes e não deixar a falha de um serviço derrubar o outro.",
+  conceitos:[["REST","Recursos, verbos HTTP e códigos de status. GET, PUT e DELETE são idempotentes; POST não."],["gRPC","RPC sobre HTTP/2 com Protobuf. Contratos fortes, streaming, payload binário."],["Compatibilidade","Backward: código novo lê dado antigo. Forward: código antigo lê dado novo."],["Evolução de Protobuf","Adicionar campos é seguro; reusar número de campo ou mudar tipo quebra."],["Deadline","Tempo máximo propagado pela cadeia de chamadas no gRPC."],["Acoplamento de disponibilidade","Se o serviço chamado cai, quem chama também falha."]],
+  tradeoff:"Síncrono é simples de entender e responde na hora, mas acopla disponibilidade e latência entre serviços.",
+  ler:["DDIA|cap. 4 (Encoding and Evolution), com atenção a “Modes of Dataflow”","MP|cap. 3, seções sobre comunicação síncrona"],
+  artigo:["Roy Fielding — tese de doutorado, cap. 5 (a definição de REST)","Documentação do gRPC — “Core concepts”"],
+  video:["Palestras introdutórias de gRPC (canal oficial do gRPC ou CNCF)"],
+  pratica:["Implemente o mesmo endpoint em REST (JSON) e em gRPC (grpc-kotlin).","Compare tamanho do payload e latência.","Evolua o .proto adicionando um campo, depois reusando um número de campo removido, e observe o que quebra."],
+  check:["Por que PUT é idempotente e POST não?","Como o deadline se propaga numa cadeia gRPC?","Que mudanças no Protobuf quebram compatibilidade?"]},
+ {id:"s19",aula:13,title:"Comunicação assíncrona e transactional outbox",
+  resumo:"Na comunicação assíncrona, o serviço publica uma mensagem e segue em frente. Filas e logs de eventos desacoplam serviços no tempo e absorvem picos. O ponto mais traiçoeiro é garantir que o dado salvo no banco e o evento publicado nunca divirjam.",
+  conceitos:[["Fila vs log","Fila (SQS) entrega a um consumidor e apaga; log (Kafka) guarda e permite vários consumidores e releitura."],["Garantias de entrega","At-most-once, at-least-once e o “exactly-once” na prática: at-least-once + consumidor idempotente."],["Ordenação","No Kafka, só dentro da mesma partição. Use a chave certa (ex.: id do pedido)."],["Consumer groups e lag","Grupos dividem partições; lag é o quanto o consumidor está atrasado."],["Dead letter queue","Destino de mensagens que falham repetidamente."],["Dual write","Gravar no banco e publicar no broker em passos separados; um pode falhar sem o outro."],["Transactional outbox","Grava o evento numa tabela na mesma transação; um processo publica depois."]],
+  tradeoff:"Desacopla no tempo e absorve picos, mas traz consistência eventual, mensagens duplicadas, ordem parcial e depuração mais difícil.",
+  ler:["DDIA|cap. 11 (Stream Processing), primeira metade: “Transmitting Event Streams”","microservices.io — padrões Transactional Outbox e Idempotent Consumer"],
+  artigo:["Jay Kreps — “The Log: What every software engineer should know about real-time data's unifying abstraction”"],
+  video:["Martin Kleppmann — “Turning the database inside out” (Strange Loop)"],
+  pratica:["Publique o evento PedidoCriado usando uma tabela outbox gravada na mesma transação do pedido.","Crie um publicador (polling ou Debezium) que envia para o Kafka, usando o id do pedido como chave.","Faça o consumidor idempotente com uma tabela de mensagens processadas.","Mate o consumidor no meio do processamento e confirme que não há efeito duplicado."],
+  check:["Por que salvar no banco e publicar no Kafka na mesma função não é seguro?","Como garantir a ordem dos eventos de um mesmo pedido?","Quando você usaria SQS e quando Kafka?"],
+  extra:["KDG|caps. 1, 3 e 4 (produtores e consumidores) (opcional)"]}
+ ]},
+{title:"Padrões distribuídos",goal:"Resolver consistência entre serviços sem transação distribuída: CQRS, sagas, event sourcing e a base de consenso por trás de tudo.",
+ deliver:"Saga de compra funcionando de ponta a ponta com compensações, e uma projeção CQRS alimentada pelos eventos de pedido.",
+ weeks:[
+ {id:"s20",aula:18,title:"CQRS",
+  resumo:"CQRS separa o modelo de escrita (comandos, regras, consistência) do modelo de leitura (consultas, desnormalizado, otimizado), muitas vezes em bancos diferentes sincronizados por eventos.",
+  conceitos:[["Comando vs consulta","Comando muda estado; consulta só lê."],["Modelo de leitura","Visão desnormalizada, pronta para a tela ou para a busca."],["Projeção","Código que consome eventos e atualiza o modelo de leitura."],["Atraso de projeção","A leitura fica alguns milissegundos ou segundos atrás da escrita."],["API composition","Alternativa mais simples: juntar dados de vários serviços na hora da consulta."]],
+  tradeoff:"Leituras rápidas e modelos mais simples de cada lado, em troca de sincronização, atraso e mais infraestrutura. Vale em partes específicas do sistema, não no sistema inteiro.",
+  ler:["MP|cap. 7 (Implementing queries in a microservice architecture)"],
+  artigo:["Martin Fowler — “CQRS”","Greg Young — documentos sobre CQRS"],
+  video:["Greg Young — palestras sobre CQRS"],
+  pratica:["Crie a projeção “minhas vendas” do vendedor, alimentada pelos eventos de pedido.","Grave numa tabela desnormalizada (ou no OpenSearch).","Meça o atraso da projeção e decida como a interface lida com ele."],
+  check:["Como lidar com o usuário que cria algo e não vê na listagem?","Quando CQRS é excesso?","Qual a diferença entre CQRS e simplesmente ter uma réplica de leitura?"]},
+ {id:"s21",aula:19,title:"Saga",
+  resumo:"Sem transação distribuída, uma operação que atravessa serviços vira uma sequência de transações locais. Cada passo tem uma ação compensatória para desfazê-lo se um passo seguinte falhar.",
+  conceitos:[["Two-phase commit","Transação distribuída clássica. Evitada porque bloqueia e acopla disponibilidade."],["Coreografia","Cada serviço reage a eventos dos outros. Sem coordenador central."],["Orquestração","Um orquestrador diz a cada serviço o que fazer."],["Transação compensatória","Desfaz o efeito de um passo (estornar, liberar reserva). Não é rollback."],["Passo pivô","Depois dele, a saga só segue adiante; antes dele, pode ser compensada."],["Falta de isolamento","Outras operações veem estados intermediários; contramedidas como semantic lock."],["Motores de workflow","Temporal, AWS Step Functions: orquestração com estado durável."]],
+  tradeoff:"Coreografia é desacoplada, mas o fluxo fica espalhado e difícil de depurar. Orquestração deixa o fluxo visível, com risco de o orquestrador acumular lógica demais.",
+  ler:["MP|cap. 4 (Managing transactions with sagas)","BM|cap. 6 (Workflow)"],
+  artigo:["Garcia-Molina e Salem — “Sagas” (1987), o paper original","microservices.io — padrão Saga"],
+  video:["Caitie McCaffrey — “Applying the Saga Pattern” (GOTO)"],
+  pratica:["Implemente a saga de compra orquestrada: reservar anúncio → autorizar pagamento → confirmar pedido.","Implemente as compensações: liberar reserva e estornar pagamento.","Simule falha no pagamento e na confirmação e verifique o estado final.","Garanta que cada passo seja idempotente."],
+  check:["Qual é o passo pivô da sua saga?","O que é semantic lock?","Por que compensação não é o mesmo que rollback?"]},
+ {id:"s22",aula:20,title:"Event sourcing",
+  resumo:"Em vez de guardar o estado atual, guarda-se a sequência de eventos que levou a ele. O estado é reconstruído reproduzindo os eventos. Dá histórico completo e auditoria, e muda bastante a forma de programar.",
+  conceitos:[["Event store","Armazenamento só de inclusão (append-only) dos eventos por agregado."],["Replay","Reconstruir o estado aplicando os eventos em ordem."],["Snapshot","Estado salvo periodicamente para não reprocessar tudo."],["Versionamento de eventos","Eventos antigos nunca mudam; o código converte formatos antigos (upcasting)."],["Concorrência otimista","Cada evento tem uma versão; duas escritas na mesma versão conflitam."],["Evento de domínio vs de integração","O primeiro é interno ao serviço; o segundo é contrato público."]],
+  tradeoff:"Auditoria, reprocessamento e novas projeções quase de graça, contra complexidade maior, evolução difícil do formato dos eventos e consultas que sempre dependem de projeções.",
+  ler:["MP|cap. 6 (Developing business logic with event sourcing)","DDIA|cap. 11, seção “Databases and Streams”"],
+  artigo:["Martin Fowler — “Event Sourcing”"],
+  video:["Greg Young — palestras sobre Event Sourcing"],
+  pratica:["Implemente o agregado Pedido com event sourcing numa tabela Postgres com (aggregate_id, version) único.","Reconstrua o estado a partir dos eventos.","Crie snapshots a cada N eventos.","Provoque duas escritas concorrentes e veja o conflito de versão."],
+  check:["Por que event sourcing e CQRS costumam andar juntos?","Como mudar o formato de um evento já gravado?","Em que casos você não usaria event sourcing?"]},
+ {id:"s23",aula:null,title:"Consenso, eleição de líder e locks distribuídos",
+  resumo:"Consenso é fazer várias máquinas concordarem sobre um valor (quem é o líder, a ordem de um log) mesmo com falhas. Está por baixo do etcd, do ZooKeeper, do Kafka em modo KRaft e de bancos distribuídos. A grade não cobre, mas é base para entender tudo o que foi visto até aqui.",
+  conceitos:[["Raft","Algoritmo de consenso com eleição de líder, termos e replicação de log."],["Maioria (quórum)","Uma decisão vale quando a maioria confirma. Por isso clusters de 3 ou 5 nós."],["FLP","Resultado teórico: em rede totalmente assíncrona, consenso garantido é impossível. Na prática, usam-se timeouts."],["Lease","Posse temporária de um recurso ou da liderança."],["Fencing token","Número crescente que impede um dono antigo de um lock de escrever depois de perdê-lo."]],
+  tradeoff:"Consenso garante consistência forte, mas cada decisão custa uma rodada até a maioria, e sem quórum o sistema para de aceitar escritas.",
+  ler:["DDIA|cap. 9, seção “Distributed Transactions and Consensus”","Paper do Raft — “In Search of an Understandable Consensus Algorithm” (Ongaro e Ousterhout)"],
+  artigo:["Martin Kleppmann — “How to do distributed locking”","Visualização interativa em raft.github.io"],
+  video:["MIT 6.824 / 6.5840 (Distributed Systems) — aulas sobre Raft"],
+  pratica:["Na visualização do raft.github.io, derrube o líder e acompanhe a nova eleição.","Crie uma partição e observe qual lado continua aceitando escritas.","Revise um lock distribuído que você já usou e verifique se ele tem fencing."],
+  check:["Por que um cluster de 4 nós tolera o mesmo número de falhas que um de 3?","Por que um lock com TTL sem fencing token é inseguro?","O que acontece com o Kafka KRaft se o quórum de controladores cair?"],
+  extra:["SRE|cap. 23 (Managing Critical State: Distributed Consensus for Reliability) (opcional)"]}
+ ]},
+{title:"Confiabilidade",goal:"Enxergar o sistema em produção e fazer com que falhas parciais continuem parciais.",
+ deliver:"Game day: derrube dependências com Toxiproxy e mostre, pelos traces e pelos SLOs, que o sistema degradou de forma controlada.",
+ weeks:[
+ {id:"s24",aula:28,title:"Observabilidade e monitoramento",aside:"Antecipada para vir antes de resiliência: você precisa enxergar para avaliar os padrões seguintes.",
+  resumo:"Monitoramento responde perguntas que você já previu; observabilidade permite investigar as que você não previu. Métricas, logs e traces só funcionam juntos quando ligados pelo mesmo contexto (trace id).",
+  conceitos:[["Métricas","Contadores, gauges e histogramas. Baratas, mas limitadas pela cardinalidade."],["Cardinalidade","Número de combinações de labels. user_id como label explode custo."],["Logs estruturados","Logs em JSON com campos consultáveis, incluindo o trace id."],["Tracing distribuído","Spans encadeados mostrando o caminho de uma requisição entre serviços."],["Propagação de contexto","Cabeçalho traceparent (W3C) repassado em HTTP e em mensagens Kafka."],["Golden signals","Latência, tráfego, erros e saturação."],["SLI, SLO e error budget","O que medir, a meta e quanto de falha ainda é aceitável."],["Alerta por burn rate","Alerta quando o error budget está sendo consumido rápido demais."]],
+  tradeoff:"Mais telemetria dá mais visibilidade e mais custo. Amostragem reduz custo e pode esconder justamente os casos raros.",
+  ler:["SRE|cap. 6 (Monitoring Distributed Systems)","SRE|cap. 4 (Service Level Objectives)"],
+  artigo:["Documentação do OpenTelemetry — seção “Concepts”","SREW|capítulo sobre alertas baseados em SLO"],
+  video:["Charity Majors — palestras sobre observabilidade"],
+  pratica:["Adicione o agente Java do OpenTelemetry aos serviços do laboratório.","Acompanhe um trace da saga de compra de ponta a ponta, passando pelo Kafka.","Defina SLO de disponibilidade e de latência do checkout.","Crie um alerta por burn rate."],
+  check:["Qual a diferença entre SLI e SLO?","Por que alertar por sintoma e não por causa?","Por que user_id como label de métrica é um problema?"],
+  extra:["OE|parte I (opcional)"]},
+ {id:"s25",aula:21,title:"Resiliência: timeouts, retries, circuit breaker e idempotência",
+  resumo:"Em sistemas distribuídos, algo sempre está falhando. Os padrões de resiliência impedem que a falha de uma dependência se espalhe: limitam a espera, repetem com cuidado, param de insistir quando algo está claramente fora e garantem que repetir não cause efeito duplicado.",
+  conceitos:[["Timeout","Tempo máximo de espera. Sempre configure, e menor que o timeout de quem te chama."],["Retry com backoff e jitter","Repetir com espera crescente e aleatória para não sincronizar clientes."],["Amplificação de retries","3 camadas com 3 tentativas cada podem gerar 27 chamadas na última."],["Idempotency key","Chave enviada pelo cliente para que repetir a operação não a execute duas vezes."],["Circuit breaker","Fechado (normal), aberto (falha rápido) e meio-aberto (testa a volta)."],["Fallback","Resposta alternativa. Pode esconder falhas e criar caminhos nunca testados."],["Load shedding","Recusar parte da carga para atender bem o resto."],["Falha em cascata","Uma dependência lenta esgota threads de quem chama, e assim por diante."]],
+  tradeoff:"Retries escondem falhas transitórias, mas amplificam a carga justamente quando a dependência está com problema.",
+  ler:["RI|cap. 4 (Stability Antipatterns) e cap. 5 (Stability Patterns)","AWS Builders' Library — “Timeouts, retries, and backoff with jitter”"],
+  artigo:["AWS Builders' Library — “Making retries safe with idempotent APIs”","AWS Builders' Library — “Avoiding fallback in distributed systems”","Martin Fowler — “CircuitBreaker”"],
+  video:["Palestras de Michael Nygard sobre padrões de estabilidade"],
+  pratica:["Adicione Resilience4j no cliente do serviço de pagamento: TimeLimiter, Retry com jitter e CircuitBreaker.","Use Toxiproxy para injetar latência e erros.","Adicione idempotency key no endpoint de pagamento.","Observe tudo nos traces e nos painéis da semana 26."],
+  check:["Por que usar jitter?","Como definir o timeout de quem chama em relação ao de quem é chamado?","Quando um fallback é perigoso?"],
+  extra:["SRE|cap. 22 (Addressing Cascading Failures) (opcional)","BM|cap. 12 (Resiliency) (opcional)"]},
+ {id:"s26",aula:25,title:"Bulkhead",
+  resumo:"Como os compartimentos de um navio: isolar recursos para que o problema em uma parte não afunde o resto. Limita o blast radius de uma falha.",
+  conceitos:[["Pools separados","Threads ou conexões separadas por dependência."],["Semáforo","Limita chamadas simultâneas a uma dependência sem criar threads."],["Isolamento por cliente","Um cliente abusivo não consome o recurso de todos."],["Shuffle sharding","Cada cliente recebe uma combinação aleatória de instâncias; a chance de dois clientes compartilharem todas é mínima."],["Blast radius","Quanto do sistema é afetado quando algo falha."]],
+  tradeoff:"Isolamento reduz o blast radius, mas fragmenta recursos: sobra capacidade ociosa num compartimento enquanto outro está cheio.",
+  ler:["RI|cap. 5, seção sobre Bulkheads","AWS Builders' Library — “Workload isolation using shuffle-sharding”"],
+  artigo:["Documentação do Resilience4j sobre Bulkhead (semáforo e thread pool)"],
+  video:["Peter Vosshall — “How AWS Minimizes the Blast Radius of Failures” (re:Invent 2018), primeira metade"],
+  pratica:["Separe com Bulkhead do Resilience4j as chamadas a pagamento e a avaliações.","Deixe o serviço de avaliações extremamente lento.","Mostre que o checkout continua funcionando."],
+  check:["Como o shuffle sharding reduz o impacto de um cliente problemático?","Qual o custo de usar bulkheads?","Como escolher o tamanho de cada compartimento?"]},
+ {id:"s27",aula:26,title:"Cell-based architecture",
+  resumo:"Replicar a pilha inteira em células independentes, cada uma atendendo um subconjunto de clientes. Uma camada fina de roteamento envia cada cliente para a sua célula. É o eixo Z aplicado à infraestrutura toda.",
+  conceitos:[["Célula","Cópia completa e independente do sistema, com seus próprios dados."],["Roteador de células","Camada que mapeia cliente para célula. Deve ser a coisa mais simples do sistema."],["Chave de célula","Critério de divisão: cliente, região, vendedor."],["Tamanho máximo","Células têm limite; cresce-se adicionando células, não aumentando."],["Deploy por célula","Novas versões vão célula por célula, limitando o impacto."],["Migração","Mover clientes entre células é caro e precisa ser planejado."]],
+  tradeoff:"Limita o blast radius e torna a escala previsível, mas multiplica a infraestrutura, complica operações globais e transforma o roteador num ponto crítico.",
+  ler:["Whitepaper da AWS — “Reducing the Scope of Impact with Cell-Based Architecture”"],
+  artigo:["Slack Engineering — post sobre a migração para arquitetura celular"],
+  video:["Peter Vosshall — “How AWS Minimizes the Blast Radius of Failures” (re:Invent 2018), parte sobre células"],
+  pratica:["Exercício de design: divida o marketplace em 3 células.","Decida a chave de célula e o que fica global (login? busca de anúncios?).","Desenhe o roteador e como um vendedor seria migrado de célula."],
+  check:["Por que o roteador precisa ser o mais simples possível?","O que no seu sistema é difícil de dividir em células?","Qual a diferença entre célula e shard de banco?"]}
+ ]},
+{title:"Operação e síntese",goal:"Colocar mudanças em produção com segurança, preparar-se para desastres e juntar tudo em designs completos.",
+ deliver:"Documento final de arquitetura do laboratório (com os trade-offs de cada decisão) e quatro designs de entrevista feitos com cronômetro.",
+ weeks:[
+ {id:"s28",aula:22,title:"Deployment: blue/green, canary e feature toggles",
+  resumo:"A maioria dos incidentes começa numa mudança. Estratégias de deploy reduzem o risco expondo a versão nova aos poucos e permitindo voltar rápido. Feature toggles separam o deploy (código em produção) do release (funcionalidade ligada).",
+  conceitos:[["Rolling update","Troca as tasks aos poucos. No ECS, controlado por minimumHealthyPercent e maximumPercent."],["Blue/green","Duas versões completas; o tráfego vira de uma vez. Rollback instantâneo."],["Canary","Uma fração pequena do tráfego vai para a versão nova primeiro."],["Análise de canary","Comparar métricas da versão nova com a antiga para decidir seguir ou voltar."],["Feature toggles","Tipos: release, experimento, operacional, permissão."],["Expand/contract","Migração de banco em etapas compatíveis com a versão antiga e a nova."],["Shadow traffic","Espelhar tráfego real para a versão nova sem afetar respostas."]],
+  tradeoff:"Blue/green dá rollback instantâneo ao custo de capacidade dobrada. Canary expõe poucos usuários, mas só funciona com boas métricas. Toggles dão controle fino e viram dívida se não forem removidos.",
+  ler:["BM|cap. 8 (Deployment)","SREW|capítulo “Canarying Releases”"],
+  artigo:["Martin Fowler — “BlueGreenDeployment” e “CanaryRelease”","Pete Hodgson — “Feature Toggles (aka Feature Flags)”","Netflix Tech Blog — post sobre análise automatizada de canary com o Kayenta"],
+  video:["Palestras sobre progressive delivery (re:Invent ou KubeCon)"],
+  pratica:["Configure um deploy blue/green ou canary para o ECS com CodeDeploy.","Faça uma migração expand/contract: adicionar coluna nova, escrever nas duas, migrar leitura, remover a antiga.","Coloque uma funcionalidade atrás de um toggle."],
+  check:["Por que a migração de banco precisa ser compatível com a versão anterior do código?","Em que situação um canary não detecta o problema?","Quando um toggle deve ser removido?"],
+  extra:["Continuous Delivery (Humble e Farley) (opcional)"]},
+ {id:"s29",aula:27,title:"SPOF e disaster recovery",
+  resumo:"Single point of failure é qualquer componente cuja falha derruba o sistema. Disaster recovery é o plano para quando o pior acontece. Começa definindo quanto tempo parado (RTO) e quanto dado perdido (RPO) o negócio aceita.",
+  conceitos:[["SPOF","Pode ser um servidor, um banco, um certificado, um DNS, um fornecedor ou uma pessoa."],["RTO","Tempo máximo aceitável para voltar a funcionar."],["RPO","Quantidade máxima aceitável de dados perdidos, medida em tempo."],["Backup e restore","Mais barato, RTO de horas."],["Pilot light","Dados replicados e infraestrutura mínima pronta para crescer."],["Warm standby","Cópia reduzida rodando, pronta para escalar."],["Multi-site ativo-ativo","Duas regiões atendendo ao mesmo tempo. RTO próximo de zero, custo alto."],["Restore drill","Testar o restore de verdade. Backup não testado não é backup."]],
+  tradeoff:"Cada redução de RTO e RPO custa muito mais do que a anterior.",
+  ler:["Whitepaper da AWS — “Disaster Recovery of Workloads on AWS: Recovery in the Cloud”","SRE|cap. 26 (Data Integrity)"],
+  artigo:["AWS Well-Architected — pilar de Confiabilidade"],
+  video:["Palestras do re:Invent sobre estratégias de disaster recovery"],
+  pratica:["Faça o inventário de SPOFs do laboratório, incluindo os não técnicos.","Defina RTO e RPO para pedidos e para catálogo.","Teste o restore de um snapshot do Postgres e cronometre o tempo real."],
+  check:["Qual a diferença entre RTO e RPO?","Por que backup não testado não é backup?","Qual SPOF costuma ser esquecido?"]},
+ {id:"s30",aula:null,title:"Estudos de caso de entrevista",
+  resumo:"Junta tudo o que foi estudado no formato de entrevista: esclarecer requisitos, estimar, desenhar em alto nível, aprofundar componentes e discutir trade-offs. A grade não tem essa parte, e é ela que transforma conhecimento em desempenho numa entrevista.",
+  conceitos:[["Requisitos","Funcionais (o que faz) e não funcionais (escala, latência, disponibilidade)."],["Estimativas","Tráfego, armazenamento e banda, como na semana 9."],["Design de alto nível","Componentes principais e fluxo de dados."],["Deep dive","Aprofundar dois ou três pontos críticos: dados, cache, particionamento."],["Trade-offs","Dizer o que você escolheu, o que perdeu e por quê."]],
+  tradeoff:"Em 45 minutos não dá para cobrir tudo. Saber o que aprofundar e o que deixar de lado é parte da avaliação.",
+  ler:["SDI|cap. 3 (A framework for system design interviews)","SDI|cap. 8 (encurtador de URL), 10 (notificações), 11 (feed) e 12 (chat)"],
+  artigo:["Releia suas notas de uma página das semanas anteriores"],
+  video:["ByteByteGo — vídeos de estudos de caso"],
+  pratica:["Faça dois designs completos com cronômetro de 45 minutos.","Grave-se ou faça com um colega.","Compare com a solução do livro e anote o que faltou."],
+  check:["Você consegue desenhar o encurtador de URL em 45 minutos cobrindo estimativa, esquema, cache, particionamento e geração de IDs?","Consegue justificar cada escolha com um trade-off?"],
+  extra:["System Design Interview vol. 2 (Alex Xu e Sahn Lam) para as semanas de folga (opcional)"]}
+ ]}
+];
+
+const F = (s,t) => ({u:"https://fidelissauro.dev/"+s, t:"Matheus Fidelis — “"+t+"”", book:"FID"});
+const YT = q => ({u:"https://www.youtube.com/results?search_query="+encodeURIComponent(q), t:"Busca no YouTube: “"+q+"”"});
+const AZP = t => ({u:"https://learn.microsoft.com/pt-br/azure/architecture/patterns/", t:"Azure Architecture Center (pt-br) — "+t, book:"AZ"});
+const LT = {u:"https://www.youtube.com/watch?v=gw9facmPPLY", t:"LINUXtips — “Aprenda SYSTEM DESIGN antes que seja tarde demais!” (super aulas com Matheus Fidelis)"};
+const PT = {
+ s1:{ler:[F("protocolos-de-rede/","Protocolos de Rede"),"KUR|cap. 2 (camada de aplicação: HTTP e DNS) e seção de TCP do cap. 3"],
+     artigo:[{u:"https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Overview",t:"MDN em português — “Uma visão geral do HTTP”"}],
+     video:[YT("handshake TCP explicado"),YT("como funciona o DNS")]},
+ s2:{ler:[F("storage/","Storage, RAID e I/O"),"PID|cap. 4, seção “Armazenamento e indexação para OLTP” (armazenamento em log, árvores B e a comparação entre elas)"],
+     artigo:["Documentação da AWS em português: tipos de volume do Amazon EBS (gp3, io2)"],
+     video:[YT("B-Tree vs LSM Tree"),YT("RAID 0 1 5 10 explicado")],
+     extra:["SOM|capítulo de Entrada/Saída, seções sobre discos e RAID (opcional)"]},
+ s3:{ler:[F("concorrencia-paralelismo/","Princípios de Concorrência e Paralelismo"),"SOM|capítulo “Processos e threads”"],
+     artigo:["Artigos em português sobre Virtual Threads no Java 21 (dev.to e Medium em pt-br)"],
+     video:[YT("Akitando concorrência e paralelismo"),YT("virtual threads java 21 spring boot")]},
+ s4:{ler:[F("teorema-cap/","Teorema CAP, Databases ACID e BASE"),"PID|cap. 8 (Transações): “Significado de ACID”, “Níveis fracos de isolamento” e “Serializabilidade”","PID|cap. 10, seção “Linearizabilidade”, até “Custo da linearizabilidade”"],
+     artigo:[F("pacelc/","Teorema PACELC")],
+     video:[YT("teorema CAP explicado"),YT("níveis de isolamento transação banco de dados")]},
+ s5:{ler:[F("databases/","Databases, Modelos de Dados e Indexação"),"PID|cap. 3 (Modelos de dados e linguagens de consulta), seção “Modelo de documentos versus modelo relacional”","PID|cap. 4, seções “Índices multicoluna e secundários” e “Armazenando valores dentro do índice”"],
+     artigo:[AZP("padrão Tabela de Índice (Index Table)")],
+     video:[YT("índice composto postgres explain analyze")]},
+ s6:{ler:[F("replicacao/","Princípios de Replicação de Dados"),"PID|cap. 6 (Replicação) inteiro"],
+     artigo:["Documentação da AWS em português: implantações Multi-AZ e réplicas de leitura do Amazon RDS"],
+     video:[YT("replicação banco de dados síncrona assíncrona"),LT]},
+ s7:{ler:[F("sharding/","Princípios de Sharding e Particionamento"),"PID|cap. 7 (Sharding) inteiro","PID|cap. 10, seção “Geradores de IDs e relógios lógicos”"],
+     artigo:[AZP("padrão Fragmentação (Sharding)")],
+     video:[YT("consistent hashing explicado"),YT("sharding banco de dados")]},
+ s8:{ler:[F("performance-capacidade-escalabilidade/","Performance, Capacidade e Escalabilidade"),"PID|cap. 2, seções “Descrevendo o desempenho” e “Escalabilidade”"],
+     artigo:[{u:"https://learn.microsoft.com/pt-br/azure/architecture/antipatterns/",t:"Azure Architecture Center (pt-br) — antipadrões de desempenho",book:"AZ"}],
+     video:[YT("latência p99 percentil explicado")]},
+ s9:{ler:[F("capacity-planning/","Capacity Planning e Teoria das Filas")],
+     artigo:["Documentação da AWS em português: Auto Scaling de serviços do Amazon ECS"],
+     video:[YT("teoria das filas lei de little sistemas")]},
+ s10:{ler:[F("load-testing/","Testes de Carga e Estresse")],
+      artigo:[{u:"https://github.com/zanfranceschi/rinha-de-backend-2024-q1",t:"Rinha de Backend 2024 (Francisco Zanfranceschi) — teste de carga com Gatling e centenas de soluções da comunidade brasileira"}],
+      video:[YT("rinha de backend"),YT("k6 teste de carga")]},
+ s11:{ler:[F("cubo-escalabilidade/","Scale Cube")],
+      artigo:[LT],
+      video:[YT("scale cube AKF escalabilidade")]},
+ s12:{ler:[F("caching/","Estratégias de Cache")],
+      artigo:[AZP("padrão Cache-Aside")],
+      video:[YT("cache aside redis spring boot"),YT("cache stampede")]},
+ s13:{ler:[F("load-balancing/","Load Balancers e Proxies Reversos")],
+      artigo:["Documentação da AWS em português: algoritmos de roteamento do Application Load Balancer"],
+      video:[YT("load balancer camada 4 camada 7"),YT("haproxy balanceamento de carga")]},
+ s14:{ler:[F("api-gateway/","API Gateways"),"BM|cap. 5, seção sobre API gateways"],
+      artigo:[AZP("padrões Roteamento de Gateway, Agregação de Gateway, Descarregamento de Gateway e Limitação de Taxa (Rate Limiting)")],
+      video:[YT("spring cloud gateway rate limiter"),YT("token bucket rate limiting")]},
+ s15:{ler:[F("bffs/","Backend for Frontends (BFFs)")],
+      artigo:[AZP("padrão Back-ends para Front-ends")],
+      video:[YT("backend for frontend BFF")]},
+ s16:{ler:[F("service-mesh/","Service Mesh Pattern")],
+      artigo:[AZP("padrões Sidecar e Embaixador (Ambassador)"),"Documentação da AWS em português: Amazon ECS Service Connect"],
+      video:[YT("LINUXtips istio service mesh")]},
+ s17:{ler:[F("monolitos-microservicos/","Microsserviços, Monolitos e Domínios"),"APD|capítulos sobre acoplamento e sobre granularidade de serviços"],
+      artigo:[{u:"https://engsoftmoderna.info/cap7.html",t:"Engenharia de Software Moderna — cap. 7 (Arquitetura)",book:"ESM"},AZP("padrão Figo Estrangulador (Strangler Fig)")],
+      video:[YT("Full Cycle microsserviços"),YT("monolito modular")],
+      extra:["MSMM|capítulos sobre padrões de decomposição (opcional)"]},
+ s18:{ler:[F("padroes-de-comunicacao-sincronos/","Padrões de Comunicação Síncronos (HTTP, gRPC, RPC, REST)"),"PID|cap. 5 (Codificação e evolução), com atenção a “Protocol Buffers” e “Modos de fluxo de dados”"],
+      artigo:[{u:"https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Methods",t:"MDN em português — métodos de requisição HTTP (e quais são idempotentes)"}],
+      video:[YT("gRPC vs REST"),YT("Full Cycle gRPC")]},
+ s19:{ler:[F("mensageria-eventos-streaming/","Mensageria, Eventos, Streaming e Arquitetura Assíncrona"),"PID|cap. 12, seção “Transmissão de fluxos de eventos”","PID|cap. 8, seção “Recapitulando o processamento de mensagens com semântica exatamente uma vez”"],
+      artigo:[AZP("padrões Consumidores Concorrentes e Nivelamento de Carga Baseado em Fila")],
+      video:[YT("transactional outbox pattern"),YT("Full Cycle Kafka")],
+      extra:["CMOE|capítulos sobre eventos, streams e integração (opcional)"]},
+ s20:{ler:[F("cqrs/","CQRS (Command-Query Responsibility Segregation)"),"PID|cap. 3, seção “Event sourcing e CQRS”"],
+      artigo:[AZP("padrão CQRS")],
+      video:[YT("CQRS na prática"),YT("Rodrigo Branas CQRS")]},
+ s21:{ler:[F("saga-pattern/","Saga Pattern"),"APD|capítulos sobre fluxos de trabalho distribuídos (orquestração vs coreografia) e sagas transacionais","PID|cap. 8, seção “Transações distribuídas” (two-phase commit)"],
+      artigo:[AZP("padrões Saga e Transação de Compensação"),"PID|cap. 5, seção “Execução durável e fluxos de trabalho”"],
+      video:[YT("saga pattern orquestração coreografia"),YT("Full Cycle saga")]},
+ s22:{ler:[F("event-sourcing/","Event Sourcing Pattern"),"PID|cap. 3, seção “Event sourcing e CQRS”","PID|cap. 12, seção “Bancos de dados e fluxos”"],
+      artigo:[AZP("padrão Fornecimento de Eventos (Event Sourcing)")],
+      video:[YT("event sourcing na prática"),YT("Elemar Júnior event sourcing")],
+      extra:["CMOE|capítulos sobre estado derivado de eventos (opcional)"]},
+ s23:{ler:["PID|cap. 9, seção “Conhecimento, verdade e mentiras” (a maioria decide, locks e leases distribuídos)","PID|cap. 10, seção “Consenso”"],
+      artigo:[AZP("padrão Eleição de Líder"),F("replicacao/","Princípios de Replicação de Dados") ],
+      video:[YT("algoritmo Raft explicado"),YT("consenso sistemas distribuídos")],
+      extra:["TSD|capítulos sobre sincronização (eleição de líder) e tolerância a falhas (opcional)"]},
+ s24:{ler:[F("observabilidade","Monitoramento e Observabilidade")],
+      artigo:["Documentação do OpenTelemetry (opentelemetry.io): parte dos conceitos tem tradução para português",AZP("padrão Monitoramento de Ponto de Extremidade de Integridade")],
+      video:[YT("OpenTelemetry spring boot"),YT("SLI SLO error budget")]},
+ s25:{ler:[F("resiliencia/","Patterns de Resiliência (Idempotência, Circuit Breakers, Retries, Fallbacks, Timeouts)"),"PID|cap. 9, seções “Detecção de falhas” e “Timeouts e atrasos ilimitados”"],
+      artigo:[AZP("padrões Repetição (Retry) e Disjuntor (Circuit Breaker)")],
+      video:[YT("Resilience4j spring boot circuit breaker"),YT("idempotência API")]},
+ s26:{ler:[F("bulkheads/","Bulkhead Pattern")],
+      artigo:[AZP("padrão Bulkhead")],
+      video:[YT("bulkhead pattern")]},
+ s27:{ler:[F("cell-based","Cell Based Pattern")],
+      artigo:[AZP("padrão Carimbos de Implantação (Deployment Stamps), parente próximo das células")],
+      video:[YT("arquitetura baseada em células AWS")]},
+ s28:{ler:[F("deployment-strategies/","Modelos de Deployment (Blue/Green, Canary, Feature Toggles)")],
+      artigo:["Documentação da AWS em português: implantação blue/green do Amazon ECS com CodeDeploy"],
+      video:[YT("blue green canary deployment"),YT("feature flags feature toggles")],
+      extra:["EC|capítulos sobre estratégias de deploy e migração de banco (opcional)"]},
+ s29:{ler:[F("single-point-of-failure","Single Point of Failure")],
+      artigo:["Documentação da AWS em português: whitepaper de recuperação de desastres de workloads na AWS"],
+      video:[YT("disaster recovery AWS RTO RPO")]},
+ s30:{ler:["SDW|use como revisão geral (opcional)",F("system-design-sumario/","Sumário da série: releia os capítulos das semanas em que teve mais dificuldade")],
+      artigo:[{u:"https://fidelissauro.dev/janelas-quebradas/",t:"Matheus Fidelis — “Teoria das Janelas Quebradas na Engenharia de Software”",book:"FID"}],
+      video:[LT,YT("entrevista system design em português")]}
+};
+
+PT.sec1 = {ler:[AZP("padrões Identidade Federada e Gatekeeper")],
+  artigo:["Documentação da AWS em português: funções do IAM para tarefas do Amazon ECS"],
+  video:[YT("OAuth2 OpenID Connect explicado"),YT("Spring Security OAuth2 resource server Keycloak")]};
+PT.sec2 = {ler:[{u:"https://owasp.org/Top10/pt_BR/",t:"OWASP Top 10 em português"}],
+  artigo:["Documentação da AWS em português: como passar segredos do Secrets Manager para tarefas do Amazon ECS",AZP("padrão Chave de Manobrista (Valet Key)")],
+  video:[YT("OWASP API Security Top 10"),YT("Trivy scan imagem docker")]};
+
+const DECISIONS = [
+ {id:"primevideo",who:"Prime Video (Amazon)",when:"2023",title:"Voltar para um monólito e cortar 90% do custo",
+  a:["Contexto","A ferramenta que monitora a qualidade de cada transmissão ao vivo era distribuída e serverless: Step Functions orquestrando, Lambdas detectando defeitos e frames trafegando pelo S3. Com mais transmissões, o custo de orquestração e de chamadas ao S3 disparou, e o sistema bateu em limites de escala."],
+  b:["Decisão","Juntar os componentes num único processo, com os dados passando em memória, rodando em EC2 e ECS, e escalar clonando a aplicação inteira."],
+  c:["Trade-off","Perderam a escala independente de cada detector; ganharam custo mais de 90% menor e mais capacidade. O caso virou referência de que microsserviços não são o padrão obrigatório."],
+  links:[{u:"https://www.infoq.com/news/2023/05/prime-ec2-ecs-saves-costs/",t:"Cobertura da InfoQ (o post original da Amazon saiu do ar)",l:"en"}],weeks:["s17","s11"]},
+ {id:"segment",who:"Segment",when:"2018",title:"“Goodbye Microservices”: de 140 serviços para um",
+  a:["Contexto","Cada destino de integração era um microsserviço com fila própria, mais de 140 no total. As bibliotecas compartilhadas divergiam entre versões, cada serviço tinha um perfil de carga diferente, e o time passava mais tempo operando do que evoluindo o produto."],
+  b:["Decisão","Consolidar os destinos num único serviço e num único repositório, com uma suíte de testes forte."],
+  c:["Trade-off","Perderam o isolamento de falhas entre destinos; ganharam produtividade e operação muito mais simples."],
+  links:[{u:"https://segment.com/blog/goodbye-microservices/",t:"Post original",l:"en"}],weeks:["s17"]},
+ {id:"shopify",who:"Shopify",when:"2019",title:"Monólito modular em vez de microsserviços",
+  a:["Contexto","Um monólito Rails gigante, com código muito acoplado, travava o trabalho de centenas de desenvolvedores."],
+  b:["Decisão","Manter um único deploy, mas reorganizar o código em componentes com fronteiras e interfaces explícitas, com ferramentas que detectam violações dessas fronteiras."],
+  c:["Trade-off","Preserva a simplicidade operacional do monólito; exige disciplina e ferramentas para as fronteiras não se desfazerem com o tempo."],
+  links:[{u:"https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity",t:"Post original",l:"en"}],weeks:["s17"]},
+ {id:"discord-rust",who:"Discord",when:"2020",title:"Trocar Go por Rust por causa do garbage collector",
+  a:["Contexto","O serviço que guarda quais mensagens cada usuário já leu era escrito em Go e tinha picos de latência regulares, causados pelo garbage collector percorrendo um cache enorme em memória."],
+  b:["Decisão","Reescrever o serviço em Rust, uma linguagem sem garbage collector."],
+  c:["Trade-off","Curva de aprendizado maior e ecossistema menor na época; em troca, os picos sumiram e a latência melhorou. Para a JVM, a lição é que pausas de GC aparecem no p99: meça antes de culpar a linguagem."],
+  links:[{u:"https://discord.com/blog/why-discord-is-switching-from-go-to-rust",t:"Post original",l:"en"}],weeks:["s8"]},
+ {id:"discord-scylla",who:"Discord",when:"2023",title:"Mudar de banco para guardar trilhões de mensagens",
+  a:["Contexto","As mensagens ficavam no Cassandra. Canais muito ativos criavam partições quentes, e pausas de GC geravam latência imprevisível e muito trabalho de manutenção."],
+  b:["Decisão","Migrar para o ScyllaDB e colocar na frente serviços de dados em Rust que juntam requisições iguais (request coalescing) e roteiam por canal."],
+  c:["Trade-off","Uma migração enorme e arriscada; em troca, latência estável com menos nós."],
+  links:[{u:"https://discord.com/blog/how-discord-stores-trillions-of-messages",t:"Post original",l:"en"}],weeks:["s7"]},
+ {id:"uber",who:"Uber",when:"2016",title:"Trocar Postgres por MySQL (uma decisão contestada)",
+  a:["Contexto","O time via no Postgres amplificação de escrita (atualizar uma linha mexia em todos os índices), replicação ineficiente entre data centers e upgrades difíceis."],
+  b:["Decisão","Migrar para MySQL, base da camada de armazenamento que eles já usavam."],
+  c:["Trade-off","A comunidade Postgres rebateu vários argumentos. Ler o post e as respostas é um ótimo exercício de ver uma decisão ser contestada com argumentos técnicos."],
+  links:[{u:"https://www.uber.com/blog/postgres-to-mysql-migration/",t:"Post original",l:"en"}],weeks:["s2","s6"]},
+ {id:"figma",who:"Figma",when:"2024",title:"Sharding horizontal próprio sobre Postgres",
+  a:["Contexto","Com o crescimento acelerado desde 2020, o time já tinha separado tabelas em bancos diferentes (particionamento vertical), mas algumas tabelas iam passar do limite de uma única instância."],
+  b:["Decisão","Construir sharding horizontal sobre o próprio Postgres, com uma camada de proxy que roteia as consultas pela chave de shard, em vez de trocar de banco."],
+  c:["Trade-off","Meses de engenharia e restrições em consultas que cruzam shards; em troca, continuar com o banco que o time domina."],
+  links:[{u:"https://www.figma.com/blog/how-figmas-databases-team-lived-to-tell-the-scale/",t:"Post original",l:"en"}],weeks:["s7"]},
+ {id:"github-part",who:"GitHub",when:"2021",title:"Quebrar o banco central em domínios",
+  a:["Contexto","Um cluster MySQL central concentrava a maior parte das tabelas e era gargalo e risco ao mesmo tempo."],
+  b:["Decisão","Agrupar tabelas em domínios de esquema, usar verificações automáticas para achar joins e transações que cruzavam domínios, e mover cada domínio para um cluster próprio."],
+  c:["Trade-off","Consultas entre domínios tiveram que ser reescritas; em troca, carga distribuída e fim da dependência de um único cluster."],
+  links:[{u:"https://github.blog/2021-09-27-partitioning-githubs-relational-databases-scale/",t:"Post original",l:"en"}],weeks:["s7"]},
+ {id:"instagram",who:"Instagram",when:"2012",title:"Gerar IDs únicos sem um serviço central",
+  a:["Contexto","Precisavam de IDs únicos e ordenáveis por tempo, gerados em muitos shards de Postgres."],
+  b:["Decisão","IDs de 64 bits compostos por tempo, número do shard lógico e uma sequência, gerados dentro do próprio Postgres."],
+  c:["Trade-off","Sem serviço central de IDs, que seria um SPOF; em troca, dependem do relógio e de um esquema de shards lógicos definido desde o começo."],
+  links:[{u:"https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c",t:"Post original",l:"en"}],weeks:["s7"]},
+ {id:"slack-cells",who:"Slack",when:"2023",title:"Migrar para arquitetura celular",
+  a:["Contexto","Incidentes em que uma zona de disponibilidade degradada, mas não totalmente fora, afetava o serviço inteiro."],
+  b:["Decisão","Organizar os serviços por zona de disponibilidade, como células, com a capacidade de drenar rapidamente o tráfego de uma zona com problema."],
+  c:["Trade-off","Mais capacidade reservada e mudanças em muitos serviços; em troca, isolamento de falhas parciais."],
+  links:[{u:"https://slack.engineering/slacks-migration-to-a-cellular-architecture/",t:"Post original",l:"en"}],weeks:["s27"]},
+ {id:"stripe",who:"Stripe",when:"2017",title:"Chaves de idempotência para retries seguros",
+  a:["Contexto","Em pagamentos, repetir uma requisição depois de um timeout pode cobrar duas vezes."],
+  b:["Decisão","A API aceita uma Idempotency-Key; o servidor guarda o resultado da primeira execução e devolve o mesmo nas repetições. Os clientes repetem com backoff exponencial e jitter."],
+  c:["Trade-off","Armazenamento e lógica a mais no servidor; em troca, retries sem efeito duplicado."],
+  links:[{u:"https://stripe.com/blog/idempotency",t:"Post original",l:"en"}],weeks:["s25"]}
+];
+const INCIDENTS = [
+ {id:"aws-s3-2017",who:"AWS S3",when:"28/02/2017",title:"Um comando digitado errado derruba o S3 em us-east-1",
+  a:["O que aconteceu","Ao depurar um problema de cobrança, um engenheiro rodou um comando para remover poucos servidores. Um parâmetro digitado errado removeu muito mais, incluindo subsistemas essenciais do S3."],
+  b:["Por que piorou","Esses subsistemas não eram reiniciados por completo havia anos, e o restart levou horas. O próprio painel de status da AWS dependia do S3."],
+  c:["Lição","Ferramentas de operação precisam de travas de segurança, o restart também precisa ser testado, e a observabilidade não pode depender do que ela observa."],
+  links:[{u:"https://aws.amazon.com/message/41926/",t:"Resumo oficial da AWS",l:"en"}],weeks:["s29"]},
+ {id:"aws-2021",who:"AWS",when:"07/12/2021",title:"Pico de conexões internas derruba serviços em us-east-1",
+  a:["O que aconteceu","Uma ação automatizada para escalar um serviço disparou um comportamento inesperado em muitos clientes da rede interna. O pico de conexões sobrecarregou os equipamentos entre a rede interna e a rede principal."],
+  b:["Por que piorou","O monitoramento interno ficou prejudicado pelo mesmo congestionamento, o que atrasou o diagnóstico."],
+  c:["Lição","Clientes que reagem todos ao mesmo tempo (retries, reconexões) amplificam problemas, e a observabilidade precisa de um caminho independente."],
+  links:[{u:"https://aws.amazon.com/message/12721/",t:"Resumo oficial da AWS",l:"en"}],weeks:["s24"]},
+ {id:"aws-2025",who:"AWS DynamoDB",when:"19–20/10/2025",title:"Registro de DNS vazio para um serviço central",
+  a:["O que aconteceu","Uma condição de corrida latente na automação que gerencia o DNS do DynamoDB deixou vazio o registro do endpoint regional em us-east-1. Ninguém conseguia resolver o nome do serviço."],
+  b:["Por que piorou","O efeito se espalhou para lançamento de instâncias EC2, health checks de NLB e outros serviços, incluindo o lançamento de tarefas Fargate. Para alguns clientes, o impacto durou muitas horas."],
+  c:["Lição","DNS é dependência crítica, automações precisam de proteção contra estados impossíveis, e vale mapear de quais serviços a sua plataforma depende indiretamente."],
+  links:[{u:"https://aws.amazon.com/message/101925/",t:"Resumo oficial da AWS",l:"en"}],weeks:["s1","s29"]},
+ {id:"github-2018",who:"GitHub",when:"21/10/2018",title:"43 segundos de partição de rede, 24 horas de degradação",
+  a:["O que aconteceu","Uma manutenção de rotina cortou a conexão entre o hub de rede e o data center principal da costa leste por 43 segundos. A ferramenta de failover do MySQL, que usa consenso Raft, promoveu os bancos da costa oeste."],
+  b:["Por que piorou","Durante a partição, a costa leste aceitou escritas que não chegaram ao oeste, e o oeste passou a receber escritas novas. Os dois lados divergiram, e a aplicação não estava preparada para a latência entre costas."],
+  c:["Lição","Failover automático pode obedecer ao consenso e ainda assim violar premissas da aplicação. A coordenação precisa estar alinhada com o que o sistema suporta."],
+  links:[{u:"https://github.blog/news-insights/company-news/oct21-post-incident-analysis/",t:"Análise oficial do GitHub",l:"en"}],weeks:["s6","s23"]},
+ {id:"roblox-2021",who:"Roblox",when:"28–31/10/2021",title:"73 horas fora do ar por causa do service discovery",
+  a:["O que aconteceu","O Consul, usado para service discovery e armazenamento chave-valor por quase todos os sistemas, ficou lento. A combinação de um recurso novo de streaming sob carga alta com um problema de desempenho no armazenamento interno travou o cluster."],
+  b:["Por que piorou","Parte do monitoramento dependia do próprio Consul, então o diagnóstico foi feito às cegas por muito tempo."],
+  c:["Lição","Sistema de coordenação central é SPOF, a observabilidade precisa ser independente, e upgrades de infraestrutura crítica pedem rollout cuidadoso."],
+  links:[{u:"https://about.roblox.com/pt-br/newsroom/2022/01/roblox-return-to-service-10-28-10-31-2021",t:"Relato oficial da Roblox, em português",l:"pt"}],weeks:["s23","s24"]},
+ {id:"fb-2021",who:"Facebook",when:"04/10/2021",title:"Facebook, Instagram e WhatsApp somem da internet",
+  a:["O que aconteceu","Durante uma manutenção, um comando para avaliar a capacidade do backbone derrubou todas as conexões entre os data centers. A ferramenta de auditoria que deveria bloquear o comando tinha um bug."],
+  b:["Por que piorou","Sem acesso aos data centers, os servidores de DNS retiraram seus anúncios BGP. As ferramentas internas também caíram, e foi preciso acesso físico às máquinas."],
+  c:["Lição","SPOFs escondidos (backbone e DNS) e ferramentas de recuperação que dependem do que falhou."],
+  links:[{u:"https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/",t:"Relato oficial da Meta",l:"en"}],weeks:["s1","s29"]},
+ {id:"slack-2021",who:"Slack",when:"04/01/2021",title:"O primeiro dia útil do ano derruba o Slack",
+  a:["O que aconteceu","Na volta das festas, milhões de clientes com cache frio geraram carga muito acima do normal. Os AWS Transit Gateways que ligavam as redes do Slack não escalaram a tempo, e houve perda de pacotes."],
+  b:["Por que piorou","O autoscaling tentou subir muitas instâncias de uma vez, e o serviço interno de provisionamento não deu conta."],
+  c:["Lição","Pico previsível ainda é pico, dependências de rede têm limites de escala, e autoscaling agressivo pode piorar a situação."],
+  links:[{u:"https://slack.engineering/slacks-outage-on-january-4th-2021/",t:"Relato oficial do Slack",l:"en"}],weeks:["s9","s13"]},
+ {id:"gcp-2025",who:"Google Cloud",when:"12/06/2025",title:"Código sem feature flag e retries sem jitter",
+  a:["O que aconteceu","Um recurso novo no Service Control, que autoriza chamadas de API e aplica cotas, foi para produção sem feature flag e sem tratamento de erro. Semanas depois, uma política com campos vazios replicou globalmente em segundos e fez o serviço entrar em crash em todas as regiões."],
+  b:["Por que piorou","Na recuperação, as tarefas reiniciando juntas sobrecarregaram o banco de que dependiam (efeito manada), porque não havia backoff exponencial aleatório."],
+  c:["Lição","Código crítico novo deve entrar desligado por flag, retries precisam de jitter, e dados replicados globalmente propagam falhas globalmente."],
+  links:[{u:"https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW",t:"Relatório oficial do Google",l:"en"}],weeks:["s25","s28"]},
+ {id:"cf-2025",who:"Cloudflare",when:"18/11/2025",title:"Um arquivo de configuração que dobrou de tamanho",
+  a:["O que aconteceu","Uma mudança de permissões num banco ClickHouse fez uma consulta retornar linhas duplicadas. O arquivo de features do Bot Management dobrou de tamanho, passou do limite fixo que o proxy aceitava, e o proxy falhou em toda a rede."],
+  b:["Por que piorou","O arquivo era regerado a cada poucos minutos, então a rede oscilava entre funcionar e falhar, o que confundiu o diagnóstico."],
+  c:["Lição","Trate configuração gerada internamente como entrada não confiável, falhe de forma degradada em vez de travar, e tenha um jeito de congelar a propagação."],
+  links:[{u:"https://blog.cloudflare.com/18-november-2025-outage/",t:"Relato oficial da Cloudflare",l:"en"}],weeks:["s25"]},
+ {id:"cf-2019",who:"Cloudflare",when:"02/07/2019",title:"Uma expressão regular leva as CPUs a 100% no mundo todo",
+  a:["O que aconteceu","Uma nova regra do WAF continha uma expressão regular com backtracking excessivo e foi publicada para toda a rede de uma vez."],
+  b:["Por que piorou","As CPUs de todas as máquinas foram a 100% ao mesmo tempo, porque não houve rollout gradual para esse tipo de mudança."],
+  c:["Lição","Mudança de configuração também precisa de canary, e código que processa entrada precisa de limite de execução."],
+  links:[{u:"https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/",t:"Relato oficial da Cloudflare",l:"en"}],weeks:["s28"]},
+ {id:"crowdstrike-2024",who:"CrowdStrike",when:"19/07/2024",title:"Uma atualização de conteúdo trava milhões de máquinas Windows",
+  a:["O que aconteceu","Uma atualização de conteúdo do sensor Falcon (Channel File 291) trazia um número de campos diferente do que o código esperava. O resultado foi uma leitura fora dos limites da memória e o travamento do Windows."],
+  b:["Por que piorou","Esse tipo de conteúdo não passava pelo mesmo rollout em etapas usado para o software, e chegou a milhões de máquinas quase ao mesmo tempo."],
+  c:["Lição","Configuração é código: tudo o que vai para produção precisa de validação e de rollout gradual."],
+  links:[{u:"https://www.crowdstrike.com/wp-content/uploads/2024/08/Channel-File-291-Incident-Root-Cause-Analysis-08.06.2024.pdf",t:"Análise de causa raiz oficial (PDF)",l:"en"}],weeks:["s28"]},
+ {id:"knight-2012",who:"Knight Capital",when:"01/08/2012",title:"45 minutos e mais de US$ 460 milhões de prejuízo",
+  a:["O que aconteceu","O novo código de roteamento de ordens foi implantado manualmente em 7 de 8 servidores. Uma flag reaproveitada ativou, no servidor esquecido, um código antigo e sem uso que passou a enviar milhões de ordens."],
+  b:["Por que piorou","Não havia verificação automática do deploy nem um jeito rápido de parar o sistema."],
+  c:["Lição","Deploy automatizado e verificado, nunca reaproveitar flags, e remover código morto."],
+  links:[{u:"https://www.sec.gov/litigation/admin/2013/34-70694.pdf",t:"Relatório da SEC (PDF)",l:"en"}],weeks:["s28"]},
+ {id:"gitlab-2017",who:"GitLab",when:"31/01/2017",title:"Banco apagado e backups que não funcionavam",
+  a:["O que aconteceu","Tentando resolver uma replicação atrasada, um engenheiro apagou o diretório de dados do banco primário achando que estava no secundário."],
+  b:["Por que piorou","Na hora de restaurar, descobriram que vários métodos de backup não funcionavam; um deles falhava em silêncio. Recuperaram a partir de uma cópia de outro ambiente e perderam cerca de 6 horas de dados."],
+  c:["Lição","Backup só existe se o restore for testado, e comandos destrutivos em produção precisam de proteção."],
+  links:[{u:"https://about.gitlab.com/blog/2017/02/10/postmortem-of-database-outage-of-january-31/",t:"Postmortem oficial do GitLab",l:"en"}],weeks:["s29"]},
+ {id:"capitalone-2019",who:"Capital One",when:"2019",title:"SSRF e uma role IAM com permissões demais",
+  a:["O que aconteceu","Uma configuração errada no WAF permitiu SSRF: a atacante fez o servidor consultar o serviço de metadados da EC2 e obter as credenciais de uma role IAM."],
+  b:["Por que piorou","A role tinha permissões amplas demais no S3, e dados de cerca de 100 milhões de pessoas foram extraídos."],
+  c:["Lição","Menor privilégio em cada role, proteção contra SSRF e uso do IMDSv2."],
+  links:[{u:"https://www.google.com/search?q=Capital+One+2019+breach+SSRF+IAM+analysis",t:"Busca por análises técnicas do caso",l:"en"}],weeks:["sec2"]}
+];
+
+const KEY = "sd-plan-progress-v2";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e){ done = {}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch(e){} }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const BOOKMAP = Object.fromEntries(BOOKS.map(b=>[b.code,b]));
+
+// numbering
+let n = 0;
+MONTHS.forEach(m => m.weeks.forEach(w => { w.n = ++n; }));
+MONTHS.forEach((m,i) => { m.deliver += " Registre a decisão mais importante do mês num ADR." + (i===6 ? " Escreva também o postmortem do game day." : ""); });
+const TOTAL = n;
+
+function isLink(x){ return typeof x === "object" && x !== null; }
+function ref(x){
+  if (isLink(x)) return `<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`;
+  const s = x;
+  const i = s.indexOf("|");
+  if (i > 0 && BOOKMAP[s.slice(0,i)]) {
+    const code = s.slice(0,i);
+    return `<a class="bk" href="#livro-${code.toLowerCase()}" title="${esc(BOOKMAP[code].title)}">${code}</a> ${esc(s.slice(i+1))}`;
+  }
+  return esc(s);
+}
+function bookOf(x){ if (isLink(x)) return x.book; const c = String(x).split("|")[0]; return BOOKMAP[c] ? c : null; }
+function langOf(x, fromPT){ if (fromPT) return "pt"; const b = bookOf(x); return (b && BOOKMAP[b].lang === "pt") ? "pt" : "en"; }
+function list(arr, ordered){
+  const tag = ordered ? "ol" : "ul";
+  return `<${tag}>${arr.map(x=>`<li>${ref(x)}</li>`).join("")}</${tag}>`;
+}
+function res(w, key){
+  const items = [
+    ...((PT[w.id] && PT[w.id][key]) || []).map(x => ({x, l:"pt"})),
+    ...(w[key] || []).map(x => ({x, l:langOf(x,false)}))
+  ];
+  items.sort((a,b) => (a.l === b.l) ? 0 : (a.l === "pt" ? -1 : 1));
+  if (!items.length) return "";
+  return `<ul class="res">${items.map(({x,l}) => `<li class="lang-${l}"><span class="lg lg-${l}">${l.toUpperCase()}</span>${ref(x)}</li>`).join("")}</ul>`;
+}
+
+const ADR_LINKS = [
+ {u:"https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",t:"Michael Nygard — “Documenting Architecture Decisions” (o texto que popularizou os ADRs)",l:"en"},
+ {u:"https://github.com/joelparkerhenderson/architecture-decision-record",t:"Repositório com modelos e dezenas de exemplos de ADRs",l:"en"},
+ {u:"https://backstage.io/docs/architecture-decisions/",t:"ADRs reais e públicos do Backstage (projeto open source criado pelo Spotify)",l:"en"},
+ {u:"https://engineering.atspotify.com/2020/04/when-should-i-write-an-architecture-decision-record/",t:"Spotify Engineering — “When Should I Write an Architecture Decision Record”",l:"en"},
+ {u:"https://adr.github.io/",t:"adr.github.io — modelos e ferramentas",l:"en"},
+ "FAS|capítulo sobre decisões de arquitetura, que apresenta ADRs"
+];
+const PM_LINKS = [
+ "SRE|cap. 15 (Postmortem Culture: Learning from Failure) — cultura sem culpados",
+ {u:"https://github.com/danluu/post-mortems",t:"Dan Luu — coletânea com centenas de postmortems públicos",l:"en"},
+ {u:"https://about.roblox.com/pt-br/newsroom/2022/01/roblox-return-to-service-10-28-10-31-2021",t:"Postmortem completo da Roblox, traduzido para o português",l:"pt"}
+];
+function linkLang(x){ if (isLink(x)) return x.l || (x.book && BOOKMAP[x.book] && BOOKMAP[x.book].lang==="pt" ? "pt":"en"); return langOf(x,false); }
+function linkItem(x){ const l = linkLang(x); return `<li><span class="lg lg-${l}">${l.toUpperCase()}</span>${ref(x)}</li>`; }
+const WEEKNUM = {};
+MONTHS.forEach(m => m.weeks.forEach(w => { WEEKNUM[w.id] = w.n; }));
+const CASEMAP = {};
+[...DECISIONS.map(c=>({...c,kind:"Decisão"})), ...INCIDENTS.map(c=>({...c,kind:"Incidente"}))].forEach(c => {
+  c.weeks.forEach(wid => { (CASEMAP[wid] ||= []).push(c); });
+});
+function caseCard(c){
+  const weeks = c.weeks.map(w => `<a href="#w-${WEEKNUM[w]}">${WEEKNUM[w]}</a>`).join(", ");
+  return `<article class="case" id="caso-${c.id}">
+    <div class="case-meta">${esc(c.who)} · ${esc(c.when)}</div>
+    <h4>${esc(c.title)}</h4>
+    <dl>${[c.a,c.b,c.c].map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+    <ul class="res plain">${c.links.map(linkItem).join("")}</ul>
+    <div class="case-weeks">Semana${c.weeks.length>1?"s":""} do plano: ${weeks}</div>
+  </article>`;
+}
+function renderCases(){
+  document.getElementById("decisoes").innerHTML = DECISIONS.map(caseCard).join("");
+  document.getElementById("incidentes").innerHTML = INCIDENTS.map(caseCard).join("");
+  document.getElementById("adr-links").innerHTML = ADR_LINKS.map(linkItem).join("");
+  document.getElementById("pm-links").innerHTML = PM_LINKS.map(linkItem).join("");
+}
+function caseRow(w){
+  const cs = CASEMAP[w.id];
+  if (!cs) return "";
+  return `<div class="day">Caso real<small>Leia no domingo</small></div><div><ul class="res">${cs.map(c => {
+    const l = c.links[0].l || "en";
+    return `<li><span class="lg lg-${l}">${l.toUpperCase()}</span><a href="#caso-${c.id}">${esc(c.kind)}: ${esc(c.who)} (${esc(c.when)}) — ${esc(c.title)}</a></li>`;
+  }).join("")}</ul></div>`;
+}
+
+function renderLibrary(){
+  const used = {};
+  MONTHS.forEach(m => m.weeks.forEach(w => {
+    const pt = PT[w.id] || {};
+    [...(w.ler||[]), ...(w.artigo||[]), ...(w.extra||[]), ...(pt.ler||[]), ...(pt.artigo||[]), ...(pt.extra||[])].forEach(x => {
+      const c = bookOf(x);
+      if (c) { (used[c] ||= new Set()).add(w.n); }
+    });
+  }));
+  const lib = document.getElementById("library");
+  lib.innerHTML = Object.entries(GROUPS).map(([g,[title,desc]]) => {
+    const rows = BOOKS.filter(b=>b.group===g).map(b => {
+      const weeks = used[b.code] ? [...used[b.code]].sort((a,b)=>a-b) : [];
+      return `<div class="book" id="livro-${b.code.toLowerCase()}">
+        <div class="code">${b.code}<span class="lg lg-${b.lang==="pt"?"pt":"en"}">${b.lang==="pt"?"PT":"EN"}</span></div>
+        <div><h4>${b.url?`<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.title)}</a>`:esc(b.title)}</h4><div class="meta">${esc(b.author)}${b.pt?" · "+esc(b.pt):""}</div>
+        <p class="why">${esc(b.why)}</p>
+        ${weeks.length?`<div class="used">Usado nas semanas ${weeks.map(w=>`<a href="#w-${w}">${w}</a>`).join(", ")}</div>`:""}</div></div>`;
+    }).join("");
+    return `<h3>${title}</h3><p>${desc}</p>${rows}`;
+  }).join("");
+}
+
+function renderPlan(){
+  const plan = document.getElementById("plan");
+  const rail = document.getElementById("rail");
+  plan.innerHTML = ""; rail.innerHTML = "";
+  MONTHS.forEach((m, mi) => {
+    const first = m.weeks[0].n, last = m.weeks[m.weeks.length-1].n;
+    const sec = document.createElement("section");
+    sec.className = "month"; sec.id = "mes-" + (mi+1);
+    sec.innerHTML = `<div class="month-top"><div><div class="month-num">${mi+1}</div><h3>${esc(m.title)}</h3><div class="count" data-count="${mi}"></div></div>
+      <div><p class="month-goal"><strong>Semanas ${first} a ${last}.</strong> ${esc(m.goal)}</p>
+      <div class="deliver"><strong>Entrega do mês</strong>${esc(m.deliver)}</div></div></div><div class="weeks"></div>`;
+    const list_ = sec.querySelector(".weeks");
+    const rm = document.createElement("div");
+    rm.className = "rail-month";
+    rm.innerHTML = `<div class="rail-segs"></div><div class="rail-label">Mês ${mi+1} · ${esc(m.title)}</div>`;
+    const segs = rm.querySelector(".rail-segs");
+
+    m.weeks.forEach(w => {
+      const isExtra = w.aula === null;
+      const tag = isExtra ? `<span class="tag extra">Extra, fora da grade</span>` : `<span class="tag">Aula ${w.aula} da grade</span>`;
+      const concepts = w.conceitos.map(([t,d])=>`<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("");
+      const el = document.createElement("div");
+      el.className = "week"; el.id = "w-" + w.n;
+      el.innerHTML = `<div class="week-row">
+        <input type="checkbox" aria-label="Concluir semana ${w.n}: ${esc(w.title)}">
+        <details><summary><span class="wk">Semana ${w.n}</span>${tag}<span class="hint">Abrir</span><h4>${esc(w.title)}</h4></summary>
+        <div class="body">
+          <h5>O que é</h5><p>${esc(w.resumo)}</p>
+          ${w.aside?`<p class="aside">${esc(w.aside)}</p>`:""}
+          <h5>Conceitos-chave</h5><dl class="concepts">${concepts}</dl>
+          <h5>Trade-off central</h5><p class="tradeoff">${esc(w.tradeoff)}</p>
+          <h5>Roteiro da semana</h5>
+          <div class="plan">
+            <div class="day">Seg e Ter<small>Leitura principal</small></div><div>${res(w,"ler")}</div>
+            <div class="day">Qua<small>Artigos</small></div><div>${res(w,"artigo")}</div>
+            <div class="day">Qui<small>Vídeo</small></div><div>${res(w,"video")}</div>
+            <div class="day">Sáb<small>Prática</small></div><div>${list(w.pratica,true)}</div>
+            <div class="day">Dom<small>Autoavaliação</small></div><div>${list(w.check)}</div>
+            ${caseRow(w)}
+            ${(w.extra || (PT[w.id]&&PT[w.id].extra))?`<div class="day opt">Se sobrar tempo</div><div class="opt">${res(w,"extra")}</div>`:""}
+          </div>
+        </div></details></div>`;
+      const cb = el.querySelector("input");
+      cb.checked = !!done[w.id];
+      cb.addEventListener("change", e => { if (e.target.checked) done[w.id]=true; else delete done[w.id]; save(); update(); });
+      list_.appendChild(el);
+
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "seg" + (isExtra?" extra":"");
+      b.dataset.id = w.id;
+      b.title = `Semana ${w.n}: ${w.title}`;
+      b.setAttribute("aria-label", `Ir para a semana ${w.n}: ${w.title}`);
+      b.addEventListener("click", () => openWeek(w.n));
+      segs.appendChild(b);
+    });
+    plan.appendChild(sec);
+    rail.appendChild(rm);
+  });
+  update();
+}
+
+function openWeek(num){
+  const t = document.getElementById("w-"+num);
+  if (!t) return;
+  t.querySelector("details").open = true;
+  t.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+}
+
+function update(){
+  let c = 0;
+  MONTHS.forEach((m, mi) => {
+    let mc = 0;
+    m.weeks.forEach(w => {
+      const d = !!done[w.id]; if (d){ mc++; c++; }
+      document.getElementById("w-"+w.n).classList.toggle("is-done", d);
+      document.querySelector(`.seg[data-id="${w.id}"]`).classList.toggle("done", d);
+    });
+    document.querySelector(`[data-count="${mi}"]`).textContent = `${mc} de ${m.weeks.length} semanas concluídas`;
+  });
+  document.getElementById("progress-text").innerHTML = `<strong>${c} de ${TOTAL}</strong> semanas concluídas (${Math.round(c/TOTAL*100)}%)`;
+}
+
+document.getElementById("next").onclick = () => {
+  for (const m of MONTHS) for (const w of m.weeks) if (!done[w.id]) { openWeek(w.n); return; }
+  document.querySelector("section.final").scrollIntoView();
+};
+document.getElementById("collapse").onclick = () => document.querySelectorAll("details").forEach(d=>d.open=false);
+document.getElementById("reset").onclick = () => {
+  if (confirm("Limpar todo o progresso marcado?")) { done = {}; save(); renderPlan(); }
+};
+const LKEY = "sd-plan-lang";
+function setLang(l){
+  document.body.dataset.lang = l;
+  document.querySelectorAll(".langsel button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === l)));
+  try { localStorage.setItem(LKEY, l); } catch(e){}
+}
+document.querySelectorAll(".langsel button").forEach(b => b.onclick = () => setLang(b.dataset.lang));
+let startLang = "all";
+try { startLang = localStorage.getItem(LKEY) || "all"; } catch(e){}
+setLang(startLang);
+renderLibrary();
+renderPlan();
+renderCases();
+</script>
+</body>
+</html>
